@@ -1,0 +1,12 @@
+---- RTC_TimeShow Matches (11 in 4 files) ----
+App_808.c (bsp\stm32f407vgt6_recdrv\app_712\protocol_808):			    RTC_TimeShow();	
+App_808.c (bsp\stm32f407vgt6_recdrv\app_712\protocol_808):			    RTC_TimeShow();	
+Device_gsm.c (bsp\stm32f407vgt6_recdrv\app_712\gsm):	  RTC_TimeShow();
+Device_gsm.c (bsp\stm32f407vgt6_recdrv\app_712\gsm):									 RTC_TimeShow();	
+Rtc.c (bsp\stm32f407vgt6_recdrv\app_712\rtc):							RTC_TimeShow();
+Rtc.c (bsp\stm32f407vgt6_recdrv\app_712\rtc):							RTC_TimeShow();
+Rtc.c (bsp\stm32f407vgt6_recdrv\app_712\rtc):	//RTC_TimeShow(); 
+Rtc.c (bsp\stm32f407vgt6_recdrv\app_712\rtc):void RTC_TimeShow(void)
+Rtc.c (bsp\stm32f407vgt6_recdrv\app_712\rtc)://     RTC_TimeShow();
+Rtc.c (bsp\stm32f407vgt6_recdrv\app_712\rtc):// //     RTC_TimeShow();
+Rtc.h (bsp\stm32f407vgt6_recdrv\app_712\rtc):void RTC_TimeShow(void);
