@@ -39,6 +39,7 @@ static  u16	 PackageLen=0;//记录每次接收的byte数
 /* 定时器的控制块 */
  static rt_timer_t timer_485; 
  static u8 One_second_Counter_485=0; 
+ static u8  Second_cout=0;   
 //----------- _485 rx-----
 ALIGN(RT_ALIGN_SIZE)
 u8    _485_dev_rx[_485_dev_SIZE];       
@@ -168,7 +169,7 @@ void  DwinLCD_Send(void)
 				   sprintf(send,"\r\n车辆入网ID: "); 
 				   memcpy(DwinLCD.Txinfo+ DwinLCD.TxInfolen,send,strlen(send));
 				   DwinLCD.TxInfolen+=strlen(send);   
-				   memcpy(DwinLCD.Txinfo+ DwinLCD.TxInfolen,SIM_CardID_JT808,12);   //---- 
+				   memcpy(DwinLCD.Txinfo+ DwinLCD.TxInfolen,DeviceNumberID,12);   //---- 
 				   DwinLCD.TxInfolen+=12;     
 				   memset(send,0,sizeof((const char*)send));   
 				   sprintf(send,"\r\n\r\n车牌号:   %s",JT808Conf_struct.Vechicle_Info.Vech_Num,strlen((const char*)(JT808Conf_struct.Vechicle_Info.Vech_Num)));
@@ -474,12 +475,12 @@ void  OpenDoor_TakePhoto(void)
 	  if(DoorLight_StatusGet())  // PA1
 	  	{
 	            DoorOpen.currentState=1;
-		      // rt_kprintf( "\r\n   门高!\r\n ");
+		    //   rt_kprintf( "\r\n   门高!\r\n "); 
 	  	}
 	  else
 	  	{
 	            DoorOpen.currentState=0;
- 		     //rt_kprintf( "\r\n   门低!\r\n ");   
+ 		    // rt_kprintf( "\r\n   门低!\r\n ");   
  	  	}
 	  if((DoorOpen.currentState!=DoorOpen.BakState)&&(DataLink_Status())) 
 	  	{	   
@@ -492,7 +493,7 @@ void  OpenDoor_TakePhoto(void)
 					rt_kprintf( "\r\n   变化拍照!\r\n ");	  			 
 		   	} 
 	  }
-	  DoorOpen.BakState=DoorOpen.currentState; //  update state       
+	  DoorOpen.BakState=DoorOpen.currentState; //  update state        
 }
 
 void  _485_RxHandler(u8 data)
@@ -724,6 +725,8 @@ void  Pic_Data_Process(void)
 	               DF_Write_RecordAdd(pic_write,pic_read,TYPE_PhotoAdd);  
 	               //--------------------------------------------------------------------------                  
 	               rt_kprintf("\r\n        PicSize: %d Bytes\r\n    Camera  %d   End\r\n",pic_size,Camera_Number); 
+		        SingleCamra_TakeResualt_BD=0;	    //  单路摄像头拍照		
+		        SD_ACKflag.f_BD_CentreTakeAck_0805H=1;  //  发送中心拍照命令应答
 		        //----------  Normal process ---------------------
 			 End_Camera(); 
 
@@ -949,8 +952,16 @@ static void timeout_485(void *  parameter)
        if(One_second_Counter_485>10)  
        {
             One_second_Counter_485=0;               
-		OpenDoor_TakePhoto();	
+	      OpenDoor_TakePhoto();	 
+
+		 if((Second_cout++)>2) 
+		 {
+		      Camra_Take_Exception();    
+		      Second_cout=0;	  
+		 }
+
        }	   
+
          DwinLCD_Timer();
 	  DwinLCD_DispTrigger();	 
 }
@@ -963,9 +974,9 @@ struct rt_semaphore _485Rx_sem;
 
 void _485_thread_entry(void* parameter)  
 {
-       rt_err_t  res=RT_EOK;
-	MSG_Q_TYPE  rec_485;
-	u8    rec_info[20];
+//       rt_err_t  res=RT_EOK;
+//	MSG_Q_TYPE  rec_485;
+//	u8    rec_info[20];
 		
          //  1.  Debug out   &  meset  	
 	rt_kprintf("\r\n ---> 485 thread start !\r\n"); 

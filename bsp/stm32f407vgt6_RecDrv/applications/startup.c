@@ -93,11 +93,11 @@ void rtthread_startup(void)
     /* Reload IWDG counter */
     //IWDG_ReloadCounter();  
   }
-	 delay
+	 
  
 	 
     #endif 	 
-         rt_kprintf("\n\r  天津七一二 to 河北天地通, 北斗车载终端 试用版本TW701-BD--- Ver1.02   13-5-15!\r\n ");    
+         rt_kprintf("\n\r  天津七一二 to 河北天地通, 北斗车载终端 ISP   TW701-BD--- Ver1.02   13-7-1!\r\n ");    
 	/* show version */
 	rt_show_version();
 

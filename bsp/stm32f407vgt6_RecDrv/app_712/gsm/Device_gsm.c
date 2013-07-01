@@ -16,9 +16,7 @@
 #include  <stdlib.h>
 #include  <stdarg.h>
 #include "App_moduleConfig.h" 
-#include "App_gsm.h"
-#include "SMS_PDU.h"
-#include "SMS.h"
+
 
 #define GSM_GPIO			GPIOC
 #define GSM_TX_PIN			GPIO_Pin_10
@@ -41,17 +39,16 @@ flash char  CommAT_Str2[]="ATE0\r\n";
 flash char  CommAT_Str3[]="AT+COPS?\r\n";  
 flash char  CommAT_Str4[]="AT%SNFS=0\r\n";           // 设置音频输出通道选择 第二路
 flash char  CommAT_Str5[] ="AT%NFI=0,10,0,0\r\n";  // 设置音频输入通道 选择第一路      
-flash char  CommAT_Str6[] ="AT\r\n";
+flash char  CommAT_Str6[] ="AT\r\n";  
 flash char  CommAT_Str7[]="AT%NFV=5\r\n";  // 扬声器设置  --没有音频功放 没用
 flash char  CommAT_Str8[]="AT%NFO=1,3,0\r\n";//;"AT%RING=1\r\n";   //开启铃音
 flash char  CommAT_Str9[]="AT%VLB=1\r\n";//ATI
 flash char  CommAT_Str10[]="AT%NFW=1\r\n";    //   保存音频设置
 flash char  CommAT_Str11[]="AT+CGMR\r\n";//"AT%RECFDEL\r\n";//"AT\r\n"; //   
-flash char  CommAT_Str12[]="AT+CMGF=0\r\n"; 		///PDU模式
+flash char  CommAT_Str12[]="AT+CMGF=1\r\n"; 
 flash char  CommAT_Str13[]="AT+CPMS=\"SM\",\"SM\",\"SM\"\r\n";  
-flash char  CommAT_Str14[]="AT+CNMI=1,2\r\n"; 		///直接将短信输出
+flash char  CommAT_Str14[]="AT+CNMI=2,1\r\n"; 
 flash char  CommAT_Str15[]="AT+CMGD=1,4\r\n"; 
-flash char  CommAT_Str16[]="AT+CSCA?\r\n"; 
 
 
 
@@ -444,7 +441,7 @@ u8    TTS_Data_Play(void)
       	   TTS_Var.Playing=1;
            //  head
            memset(AT_TTS,0,sizeof(AT_TTS));  
-	    strcat(AT_TTS,"AT%TTS=2,3,6,\"");     
+	    strcat(AT_TTS,"AT%TTS=2,3,6,\""); 
 	    TTS_Len=strlen(AT_TTS)	;	      
 	   //  info		 
 	     memcpy(AT_TTS+TTS_Len,TTS_Var.ASCII_BUF,TTS_Var.ASCII_Len);	
@@ -1276,16 +1273,11 @@ void GSM_Module_TotalInitial(void)
 					 rt_kprintf(CommAT_Str15);   
 					 CommAT.Initial_step++;
 					 break; 	
-		        case 15:
-					 rt_hw_gsm_output(CommAT_Str16); 
-					 rt_kprintf(CommAT_Str16);   
-					 CommAT.Initial_step++;
-					 break; 			 
-			 case 16://  信号强度 /		
+			 case 15://  信号强度 /		
 			                rt_hw_gsm_output(Signal_Intensity_str); 
 					 rt_kprintf(Signal_Intensity_str);    
 					 break;
-	               case 17:/*开始能拨号*/ 
+	               case 16:/*开始能拨号*/ 
 					 rt_kprintf("AT_Start\r\n");   
 					 CommAT.Initial_step=0; 
 					 CommAT.Total_initial=0;   
@@ -1326,7 +1318,7 @@ void  Dial_step_Single_10ms_timer(void)
 
 void  Get_GSM_HexData(u8*  Src_str,u16 Src_infolen,u8 link_num)
 {
-     u16   i=0;
+    // u16   i=0;
      //  1.  Check wether   Instr   is  need   to  convert     Exam:  ASCII_2_HEX	 
                 GSM_HEX_len= GSM_AsciitoHEX_Convert(Src_str,Src_infolen,GSM_HEX); 
      //  2 .  Realse   sem
@@ -1353,8 +1345,11 @@ void DataLink_Process(void)
 					   DataDial.Pre_Dial_flag=1; 	  //--- 重新拨号	
 					   DataDial.Pre_dial_counter=0;
 					   rt_kprintf("\r\n  RetryDialcounter>=4 重新拨号\r\n");  
-				   }	 
-			   Dial_Stage(Dial_DialInit0);    // Clear   from  Dial  start 	
+				   }
+			  if(DataDial.Dial_step==Dial_DNSR1)
+			  	     Dial_Stage(Dial_MainLnk);  
+			   else
+			       Dial_Stage(Dial_DialInit0);    // Clear   from  Dial  start 	
 			   DataDial.Dial_step_Retry=0;
 			   DataDial.Dial_step_RetryTimer=0; 
 			   rt_kprintf("\r\nDataDial.Dial_step_Retry>= Dial_Step_MAXRetries ,redial \r\n");
@@ -1368,7 +1363,7 @@ void DataLink_Process(void)
               {
                    Dial_Stage(Dial_MainLnk);    // 如果是DNSR 连接那么换到mainlink
               }
-		else
+		else 
 		{
                     // rt_thread_delay(10);
 			rt_kprintf("Dial_MainLnk Retry>2 AT%IPCLOSE=1\r\n");		   
@@ -1533,14 +1528,14 @@ void DataLink_Process(void)
 
 }
 
-static void GSM_Process(u8 *instr, u16 len) 
+static void GSM_Process(u8 *instr, u16 len)
 {
       	u8	ok = false;
 		u8	error = false;
 		u8	failed = false; 
 		u8	connect = false;   		
-        u16  i=0,j=0,q=0;//,len=0;//j=0;
-         u8 reg_str[80]; 
+        u16  i=0;//,len=0;//j=0;
+       //  u8 reg_str[80]; 
 //----------------------  Debug -------------------------		
   // if(DispContent==2)	 
    memset(GSM_rx,0,sizeof((const char*)GSM_rx));
@@ -1612,172 +1607,6 @@ static void GSM_Process(u8 *instr, u16 len)
                  TTS_Play_End();
 		    rt_kprintf("\r\n   TTS  播放完毕\r\n");    		 
 	}
-#ifdef  SMS_ENABLE
-	//--------      SMS  service  related Start  -------------------------------------------
-	//+CMTI: "SM",1            +CMTI: "SM",1
-	if( strncmp( (char*)GSM_rx, "+CMTI: \"SM\",", 12 ) == 0 )
-	{
-		rt_kprintf( "\r\n收到短信:" );
-		j = sscanf( GSM_rx + 12, "%d", &i );
-		if( j )
-		{
-			SMS_Rx_Notice(i);
-			/*
-			rt_kprintf( " index=%d", SMS_Service.SMIndex );
-			SMS_Service.SMS_read		= 3;
-			SMS_Service.SMS_waitCounter = 1;
-			*/
-		}
-
-
-		/*
-		           if(((GSM_rx[12]>=0x30)&&(GSM_rx[12]<=0x39) )&&((GSM_rx[13]<0x30)||(GSM_rx[13]>0x39)))
-		     // if (len== 13 )
-		          {
-		                SMS_Service.SMIndex=GSM_rx[12]-0X30;
-		      rt_kprintf("\r\n当前短信的序号为: %d \r\n",SMS_Service.SMIndex);
-		     SMS_Service.SMS_come=1;  //设置使能标志位
-		          }
-		          else
-		   //  if (len == 14 )
-		     if(((GSM_rx[12]>=0x30)&&(GSM_rx[12]<=0x39) )&&((GSM_rx[13]>=0x30)&&(GSM_rx[13]<=0x39)))
-		          {
-		                SMS_Service.SMIndex= ( ( GSM_rx[12] - 0x30 ) << 4 ) | ( GSM_rx[13] - 0x30 );   // BCD
-		           rt_kprintf("\r\n当前短信的序号为: %d \r\n",SMS_Service.SMIndex);
-		     SMS_Service.SMS_come=1;  //设置使能标志位
-		          }
-		 */
-	}
-	else if( strncmp( (char*)GSM_rx, "+CMT: ", 6 ) == 0 )
-	{
-		if(GSM_rx[6]==',')		///PDU模式
-		{
-			if( RT_EOK == rt_mq_recv( &mq_GSM, (void*)&GSM_RX_BUFF, GSM_TYPEBUF_SIZE, RT_TICK_PER_SECOND ) )    //等待1000ms,实际上就是变长的延时,最长1000ms
-			{
-				memset( GSM_rx, 0, sizeof( GSM_rx ) );
-				memcpy( GSM_rx, GSM_RX_BUFF.gsm_content, GSM_RX_BUFF.gsm_wr );
-				len=GSM_RX_BUFF.gsm_wr;
-
-				SMS_Rx_PDU(GSM_rx,len);
-			}
-		}
-		else					///TEXT模式
-		{
-			j	= 0;
-			q	= 0;
-			memset( reg_str, 0, sizeof( reg_str ) );
-			for( i = 6; i < len; i++ )
-			{
-				if( ( j == 1 ) && ( GSM_rx[i] != '"' ) )
-				{
-					reg_str[q++] = GSM_rx[i];
-				}
-				if( GSM_rx[i] == '"' )
-				{
-					j++;
-					if(j>1)
-						break;
-				}
-			}
-			//rt_kprintf( "\r\n  短息来源号码:%s \r\n", reg_str );
-			if( RT_EOK == rt_mq_recv( &mq_GSM, (void*)&GSM_RX_BUFF, GSM_TYPEBUF_SIZE, RT_TICK_PER_SECOND ) )    //等待1000ms,实际上就是变长的延时,最长1000ms
-			{
-				memset( GSM_rx, 0, sizeof( GSM_rx ) );
-				memcpy( GSM_rx, GSM_RX_BUFF.gsm_content, GSM_RX_BUFF.gsm_wr );
-				len=GSM_RX_BUFF.gsm_wr;
-				SMS_Rx_Text(GSM_rx,reg_str);
-			}
-		}
-		
-	}
-#ifdef SMS_TYPE_PDU
-	else if( strncmp( (char*)GSM_rx, "+CMGR:", 6 ) == 0 )
-	{
-		if( RT_EOK == rt_mq_recv( &mq_GSM, (void*)&GSM_RX_BUFF, GSM_TYPEBUF_SIZE, RT_TICK_PER_SECOND ) )    //等待1000ms,实际上就是变长的延时,最长1000ms
-		{
-			memset( GSM_rx, 0, sizeof( GSM_rx ) );
-			memcpy( GSM_rx, GSM_RX_BUFF.gsm_content, GSM_RX_BUFF.gsm_wr );
-			len=GSM_RX_BUFF.gsm_wr;
-
-			SMS_Rx_PDU(GSM_rx,len);
-			//////
-			/*
-			memset( SMS_Service.SMS_destNum, 0, sizeof( SMS_Service.SMS_destNum ) );
-			pstrTemp=(char *)rt_malloc(200);	///短信解码后的完整内容，解码后汉子为GB码
-			memset(pstrTemp,0,200);
-			rt_kprintf( "\r\n 短信原始消息: " );
-			rt_device_write( &dev_vuart, 0, GSM_rx, len );
-			
-			len=GsmDecodePdu(GSM_rx,len,&SMS_Service.Sms_Info,pstrTemp);
-			GetPhoneNumFromPDU( SMS_Service.SMS_destNum,  SMS_Service.Sms_Info.TPA, sizeof(SMS_Service.Sms_Info.TPA));
-
-			//memcpy( SMS_Service.SMS_destNum, SMS_Service.Sms_Info.TPA,sizeof( SMS_Service.SMS_destNum ) );
-			rt_kprintf( "\r\n  短息来源号码:%s \r\n", SMS_Service.SMS_destNum );
-			rt_kprintf( "\r\n 短信消息: " );
-			rt_device_write( &dev_vuart, 0, pstrTemp, len );
-			//rt_hw_console_output(GSM_rx);
-			if( strncmp( (char*)pstrTemp, "TW703#", 6 ) == 0 )                                                //短信修改UDP的IP和端口
-			{
-				//-----------  自定义 短息设置修改 协议 ----------------------------------
-				SMS_protocol( pstrTemp + 5, len - 5 ,SMS_ACK_msg);
-			}
-			SMS_Service.SMS_read		= 0;
-			SMS_Service.SMS_waitCounter = 0;
-			rt_free( pstrTemp );
-			pstrTemp = RT_NULL;
-			SMS_Service.SMS_delALL=1;
-			*/
-			//////
-		}
-	}
-#else
-	else if( strncmp( (char*)GSM_rx, "+CMGR:", 6 ) == 0 )
-	{
-		//+CMGR: "REC UNREAD","8613602069191", ,"13/05/16,13:05:29+35"
-		// 获取要返回短息的目的号码
-		j	= 0;
-		q	= 0;
-		memset( reg_str, 0, sizeof( reg_str ) );
-		for( i = 6; i < 50; i++ )
-		{
-			if( ( j == 3 ) && ( GSM_rx[i] != '"' ) )
-			{
-				reg_str[q++] = GSM_rx[i];
-			}
-			if( GSM_rx[i] == '"' )
-			{
-				j++;
-			}
-		}
-		//rt_kprintf( "\r\n  短息来源号码:%s \r\n", reg_str );
-		if( RT_EOK == rt_mq_recv( &mq_GSM, (void*)&GSM_RX_BUFF, GSM_TYPEBUF_SIZE, RT_TICK_PER_SECOND ) )    //等待1000ms,实际上就是变长的延时,最长1000ms
-		{
-			memset( GSM_rx, 0, sizeof( GSM_rx ) );
-			memcpy( GSM_rx, GSM_RX_BUFF.gsm_content, GSM_RX_BUFF.gsm_wr );
-			len=GSM_RX_BUFF.gsm_wr;
-			SMS_Rx_Text(GSM_rx,reg_str);
-			
-			//////
-			/*
-			rt_kprintf( "\r\n 短信收到消息: " );
-			rt_device_write( &dev_vuart, 0, GSM_rx, GSM_RX_BUFF.gsm_wr );
-			//rt_hw_console_output(GSM_rx);
-			if( strncmp( (char*)GSM_rx, "TW703#", 6 ) == 0 )                                                //短信修改UDP的IP和端口
-			{
-				//-----------  自定义 短息设置修改 协议 ----------------------------------
-				SMS_protocol( GSM_rx + 5, len - 5 ,SMS_ACK_msg);
-			}
-			SMS_Service.SMS_read		= 0;
-			SMS_Service.SMS_waitCounter = 0;
-			SMS_Service.SMS_delALL=1;
-			*/
-			//////
-		}
-	}
-#endif
-
-#endif
-	//-----------SMS  service related  Over  ----------------------------------------
 	if(strncmp((char*)GSM_rx, "%IPSENDX:1",10)==0)	 // 链路 1  TCP 发送OK  
 	{												   //exam:	%IPSENDX:1,15 
                 //Api_cycle_Update();  //  数据发送 ，更新写指针	   
@@ -1904,7 +1733,7 @@ static void GSM_Process(u8 *instr, u16 len)
 		 //-------------------------------------------------------------------------   
 		   
 			
-		}  
+	}  
 	else
 	if(strncmp((char*)GSM_rx, "+COPS: 0",8)==0)  //----该卡被注销了
 	{
@@ -1973,12 +1802,12 @@ static void GSM_Process(u8 *instr, u16 len)
 	 	      //  You must   register on 
 	 		  if(CommAT.Total_initial==1)
 	 			{
-			                if(ModuleSQ>10)
-			 				{
-			 				  CommAT.Initial_step++;
-							  rt_kprintf("\r\n CSQ check Pass\r\n");     
-			                }
-			 	} 				 
+	                if(ModuleSQ>10)
+	 				{
+	 				  CommAT.Initial_step++;
+					  rt_kprintf("\r\n CSQ check Pass\r\n");     
+	                }
+	 	} 				 
 		
 	}
 
@@ -2165,8 +1994,8 @@ RXOVER:
 			                                   #ifdef MULTI_LINK
 			                                         Dial_Stage(Dial_DNSR1);   // 多连接
 								#else
-								     // Dial_Stage(Dial_DNSR1); 
-		                                               Dial_Stage(Dial_MainLnk);  
+								     Dial_Stage(Dial_DNSR1); 
+		                                              // Dial_Stage(Dial_MainLnk);  
 		                                          #endif
 
 								DEV_regist.Sd_add=0;     				  
@@ -2243,7 +2072,7 @@ RXOVER:
 void  IMSIcode_Get(void)
 {
 
-              if((GSM_PWR.GSM_power_over==1) &&(JT808Conf_struct.password_flag ==1) )
+              if((GSM_PWR.GSM_power_over==1) &&(JT808Conf_struct.password_flag ==1) ) 
 		{
                    IMSIGet.Checkcounter++;
 		       if(IMSIGet.Checkcounter>30)     //  15*30=450ms      
@@ -2265,14 +2094,11 @@ void  IMSIcode_Get(void)
 
  
 
-void AT(char *str)
+void AT(u8 *str)
 {
-	rt_hw_gsm_output((const char*)str);     
-	rt_hw_gsm_output("\r\n"); 
-	rt_kprintf("%s\r\n",str);
-	   
+       rt_hw_gsm_output((const char*)str);     
 } 
-FINSH_FUNCTION_EXPORT(AT, AT);
+FINSH_FUNCTION_EXPORT(AT, gsm_ATcmd);
 
 
 
@@ -2369,11 +2195,3 @@ void  rt_hw_gsm_init(void)
  // Speak_ON;  
  */
 }
-
-void smscome(void)
-{
-
-   GSM_Process("+CMTI: \"SM\",1", 13);  
-
-}
-FINSH_FUNCTION_EXPORT(smscome, smscome);  

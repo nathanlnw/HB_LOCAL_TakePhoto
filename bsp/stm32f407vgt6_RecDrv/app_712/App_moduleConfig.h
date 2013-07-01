@@ -94,7 +94,6 @@
 #include "mma8451.h" 
 #include "SLE4442.h"
 #include "IC_card.h"
-#include "CRC.h"  
 
 
 

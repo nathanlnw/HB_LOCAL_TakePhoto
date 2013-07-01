@@ -11,6 +11,7 @@
 //------------------------ RT_Thread  Config   ID  list  --------------------------------
 
 
+#define     NORMAL_CONFIG_NOT_MODIFY 
 
 
  #define    ID_CONF_SYS                              0                           // 系统初始化 ID ,用来区别首次初始化
@@ -124,11 +125,6 @@
 
 //------------------------------------------------------------------------------
 #define   SOFTWARE_VER     0x0001
-#define   SYSID            0x9229             /*        
-                                                        0x0000   -----   0x00FF  生产和研发用
-                                                        0x0100   -----   0x0FFF  产品出货用
-                                                        0x1000   -----   0xF000  远程升级用
-                                                       */  
 
 #define  STM32F103_Recoder_16MbitDF            0x00000005        // 行车记录仪ID 标识  16Mit
 #define  STM32F103_Recoder_32MbitDF            0x00000007        // 行车记录仪ID 标识  16Mit 
@@ -217,12 +213,12 @@ extern ALIGN(RT_ALIGN_SIZE)  SYS_CONF        SysConf_struct;   //  系统配置
 extern ALIGN(RT_ALIGN_SIZE)  JT808_CONF      JT808Conf_struct;   //  JT 808   相关配置 
 extern ALIGN(RT_ALIGN_SIZE)  TIRED_CONF      TiredConf_struct;    //  疲劳驾驶相关配置 
 
-
+#ifdef NORMAL_CONFIG_NOT_MODIFY
+extern ALIGN(RT_ALIGN_SIZE)  JT808_CONF      BAK_JT808Conf_struct;   //  JT 808   相关配置 
+#endif
 
 //----------  Basic  Config---------------------------
 extern u8      DeviceNumberID[13];    // 车辆DeviceID    ---- 河北天地通用
-extern u8      SIM_CardID_JT808[13];   //  JT808 协议里上报号码BCD
-
 extern u8       RemoteIP_Dnsr[4]; 
 extern u8		RemoteIP_main[4];//
 extern u16		RemotePort_main;
@@ -294,8 +290,8 @@ extern void TEXTMsg_Read (void);
 extern void TIRED_DoorValue_Read(void);
 extern void SendMode_ConterProcess(void);
 extern void SendMode_Config(void)  ;
-extern void JT808_Vehicleinfo_Init(void);
 extern void JT808_RealTimeLock_Init(void);
+extern void JT808_Vehicleinfo_Init(void);
 extern void Event_Init(u8  Intype);
 extern void Question_Read(void);
 extern void Event_Read(void);
@@ -325,6 +321,7 @@ extern void MSG_BroadCast_Init(u8  Intype);
 
 //写入文本信息1-8
 extern void TEXTMSG_Write(u8 num,u8 new_state,u8 len,u8 *str);
+extern void deviceid(u8 *str);
 
 
 #endif

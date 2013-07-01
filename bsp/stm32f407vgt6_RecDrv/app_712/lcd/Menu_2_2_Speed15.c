@@ -88,7 +88,7 @@ rec_num=Api_DFdirectory_Query(spdpermin,0);
 					//rt_kprintf("\r\n读出时间是前一小时，填充\r\n");					
 					for(i=0;i<(14-avgspd_Mint_Wr);i++)//avgspd_Mint_Wr 
 						{
-						rt_kprintf(" %d",Read_15minData[64-(14-avgspd_Mint_Wr-1)+i]);//不需要读取存储的数据
+						//rt_kprintf(" %d",Read_15minData[64-(14-avgspd_Mint_Wr-1)+i]);//不需要读取存储的数据
 						memcpy(&Speed_15min[2+i*7],Read_15minData,4);//yymmddhh
 						Speed_15min[2+i*7+4]=60-(14-avgspd_Mint_Wr)+i;//mm
 						Speed_15min[2+i*7+5]=Read_15minData[64-(13-avgspd_Mint_Wr)+i];//speed
@@ -100,7 +100,7 @@ rec_num=Api_DFdirectory_Query(spdpermin,0);
 					//rt_kprintf("\r\n读出时间不是前一小时，补0\r\n");
 					for(i=0;i<(14-avgspd_Mint_Wr);i++)//avgspd_Mint_Wr 
 						{
-						rt_kprintf(" %d",Avrgspd_Mint.avgrspd[i]);//不需要读取存储的数据
+						//rt_kprintf(" %d",Avrgspd_Mint.avgrspd[i]);//不需要读取存储的数据
 						memcpy(&Speed_15min[2+i*7+k*7],Avrgspd_Mint.datetime,3);
 						kk=(Avrgspd_Mint.datetime[3]>>4)*10+(Avrgspd_Mint.datetime[3]&0x0f)-1;
 						Speed_15min[2+i*7+k*7+3]=((kk/10)<<4)+(kk%10);//
@@ -112,7 +112,7 @@ rec_num=Api_DFdirectory_Query(spdpermin,0);
 			// rt_kprintf("\r\n当前小时速度:\r\n");
 		        for(i=0;i<=avgspd_Mint_Wr;i++)
 		        	{
-					rt_kprintf(" %d",Avrgspd_Mint.avgrspd[i]);//不需要读取存储的数据 
+					//rt_kprintf(" %d",Avrgspd_Mint.avgrspd[i]);//不需要读取存储的数据 
 					memcpy(&Speed_15min[2+i*7+k*7],Avrgspd_Mint.datetime,4);
 					Speed_15min[2+i*7+k*7+4]=i;
 					Speed_15min[2+i*7+k*7+5]=Avrgspd_Mint.avgrspd[i];
@@ -120,7 +120,7 @@ rec_num=Api_DFdirectory_Query(spdpermin,0);
 	        	}
 		else //没有存过整小时的速度
 			{
-			rt_kprintf("\r\n 没有整小时的数据存入 ");
+			//rt_kprintf("\r\n 没有整小时的数据存入 ");
 			for(i=0;i<(14-avgspd_Mint_Wr);i++)//avgspd_Mint_Wr 
 				{
 				memcpy(&Speed_15min[2+i*7+k*7],Avrgspd_Mint.datetime,3);

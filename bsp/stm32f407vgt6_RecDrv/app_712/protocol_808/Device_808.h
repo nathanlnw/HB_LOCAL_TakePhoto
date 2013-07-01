@@ -16,6 +16,9 @@
 
 #define  PageSIZE          512
 
+//---------ISP    应该放在Dataflash 设置文件中的--------------
+#define DF_BL_PageNo		                 10             /*DF_BL_RAM run PageNo:   10  ~ 49  page */
+#define DF_APP1_PageNo		                 50             /*DF_APP_flah run PageNo:   50  ~ 903  page*/
 
 
 //--------  Protocol IO define -------------
@@ -130,7 +133,6 @@ extern void  Enable_Relay(void);
 extern void  Disable_Relay(void);
 extern void  IO_statusCheck(void); 
 extern void  ACC_status_Check(void);
-extern  void  debug_relay(u8 *str); 
 
 
 /*    

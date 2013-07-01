@@ -136,7 +136,6 @@
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
-            <RestoreTracepoints>0</RestoreTracepoints>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
           <TargetSelection>7</TargetSelection>
@@ -345,7 +344,6 @@
             <Rwpi>0</Rwpi>
             <wLevel>0</wLevel>
             <uThumb>0</uThumb>
-            <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>STM32F4XX, USE_STDPERIPH_DRIVER,HSE_VALUE=8000000,USE_USB_OTG_FS</Define>
@@ -361,7 +359,6 @@
             <SplitLS>0</SplitLS>
             <SwStkChk>0</SwStkChk>
             <NoWarn>0</NoWarn>
-            <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -890,16 +887,6 @@
               <FileName>Sys_config.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\app_712\protocol_808\Sys_config.h</FilePath>
-            </File>
-            <File>
-              <FileName>CRC.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\app_712\protocol_808\CRC.c</FilePath>
-            </File>
-            <File>
-              <FileName>CRC.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\app_712\protocol_808\CRC.h</FilePath>
             </File>
           </Files>
         </Group>

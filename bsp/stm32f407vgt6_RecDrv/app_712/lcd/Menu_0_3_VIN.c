@@ -15,7 +15,7 @@ unsigned char ABC[36][1]={"0","1","2","3","4","5","6","7","8","9","A","B","C","D
 DECL_BMP(8,5,select_vin);
 
 
-void Vin_Set(u8 par,u8 type1_2)
+void Sim_Set(u8 par,u8 type1_2)
 {
 	lcd_fill(0);
 	lcd_text12(0,3,(char *)Menu_Vin_Code,VIN_SetFlag-1,LCD_MODE_SET);
@@ -40,7 +40,7 @@ static void msg( void *p)
 static void show(void)
 {
 CounterBack=0;
-Vin_Set(VIN_SetCounter,1);
+Sim_Set(VIN_SetCounter,1);
 }
 
 
@@ -59,10 +59,11 @@ static void keypress(unsigned int key)
 			if((VIN_SetFlag>=1)&&(VIN_SetFlag<=17))
 				{
 				Menu_Vin_Code[VIN_SetFlag-1]=ABC[VIN_SetCounter][0];
+				//memcpy(Menu_Vin_Code[VIN_SetFlag-1],(char *)ABC[VIN_SetCounter],1);
 				//rt_kprintf("\r\n VIN_set=%d,%s",VIN_SetFlag,Menu_Vin_Code);
 				VIN_SetFlag++;	
 				VIN_SetCounter=0;
-				Vin_Set(0,1);
+				Sim_Set(0,1);
 				}		
 			else if(VIN_SetFlag==18)
 				{
@@ -72,7 +73,7 @@ static void keypress(unsigned int key)
 				lcd_text12(0,5,(char *)Menu_Vin_Code,17,LCD_MODE_SET);
 				lcd_text12(25,19,"VIN设置完成",11,LCD_MODE_SET);
 				lcd_update_all();	
-				//rt_kprintf("\r\n VIN_set=%d,%s(ok--)",VIN_SetFlag,Menu_Vin_Code);
+				rt_kprintf("\r\n VIN_set=%d,%s(ok--)",VIN_SetFlag,Menu_Vin_Code);
 				}
 			else if(VIN_SetFlag==19)
 				{
@@ -93,9 +94,9 @@ static void keypress(unsigned int key)
 				else if(VIN_SetCounter>=1)
 					VIN_SetCounter--;
 				if(VIN_SetCounter<20)
-					Vin_Set(VIN_SetCounter,1);
+					Sim_Set(VIN_SetCounter,1);
 				else
-					Vin_Set(VIN_SetCounter,2);
+					Sim_Set(VIN_SetCounter,2);
 				}
 			break;
 		case KeyValueDown:
@@ -105,9 +106,9 @@ static void keypress(unsigned int key)
 				if(VIN_SetCounter>35)
 					VIN_SetCounter=0;
 				if(VIN_SetCounter<20)
-					Vin_Set(VIN_SetCounter,1);
+					Sim_Set(VIN_SetCounter,1);
 				else
-					Vin_Set(VIN_SetCounter,2);
+					Sim_Set(VIN_SetCounter,2);
 				}
 			break;
 		}
@@ -129,10 +130,10 @@ static void timetick(unsigned int systick)
 }
 
 ALIGN(RT_ALIGN_SIZE)
-MENUITEM	Menu_0_3_vin=
+MENUITEM	Menu_0_3_VIN=
 {
-"VIN设置",
-	7,
+"SIM卡卡号设置",
+	13,
 	&show,
 	&keypress,
 	&timetick,

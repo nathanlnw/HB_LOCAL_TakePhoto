@@ -91,6 +91,8 @@ extern  VOICE_DEV Dev_Voice;
  extern  _MultiTake     MultiTake;	  //  多路拍照状态位 
  extern u8  SingleCamera_TakeRetry; // 单路摄像头拍照时，重拍次数计数
  extern Camera_state CameraState; 
+ extern   u8  SingleCamra_TakeResualt_BD;   // 单路拍照结果
+
  extern u8    TX_485const_Enable;   // 使能发送标志位  
  extern u8 	  last_package; // 拍照最后一包标识
 extern  Camera_state CameraState;  
@@ -114,9 +116,6 @@ extern  u8    Start_Camera(u8  CameraNum);
 extern  void  MultiTake_Start(void);
 extern  void  MultiTake_End(void); 
 extern u8     Camera_Take_Enable(void);
-extern  void  Voice_Dev_Init(void);
-extern  void  Voice_Dev_Rxprocess(void);
-extern  void  Voice_Dev_Txprocess(void);  
 extern  void  Camra_Take_Exception(void);
 extern int str2ipport(char *buf, u8 *ip, u16 *port); 
 

@@ -21,8 +21,8 @@ void password_Set(u8 par)
 		lcd_text12(84,3,(char *)password_Code,password_SetFlag-1,LCD_MODE_SET);//-1+14
 	lcd_bitmap(par*Sim_width1, 14, &BMP_password_icon, LCD_MODE_SET);
 	lcd_text12(0,19,"0123456789",10,LCD_MODE_SET);
-	lcd_text12(110,20,"HB",2,LCD_MODE_SET);
-	lcd_update_all();
+ 	lcd_text12(74,20,"HB.BD",5,LCD_MODE_SET); 
+ 	lcd_update_all();
 }
 
 static void msg( void *p)

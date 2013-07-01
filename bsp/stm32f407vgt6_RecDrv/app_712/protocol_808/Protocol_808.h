@@ -69,7 +69,6 @@
 
 // 4. 808 协议   消息ID
 #define   MSG_0x0001           0x0001      // 终端通用应答
-#define   MSG_0x0108           0x0108      // 终端升级结果通知 
 #define   MSG_0x8001           0x8001      // 平台通用应答
 #define   MSG_0x0002           0x0002      // 终端心跳 
 #define   MSG_0x0100           0x0100      // 终端注册
@@ -115,6 +114,7 @@
 #define   MSG_0x8801           0x8801      // 摄像头立即拍照命令
 #define   MSG_0x8802           0x8802      // 存储多媒体数据检索
 #define   MSG_0x0802           0x0802      // 存储多媒体数据检索应答
+#define   MSG_0x0805           0x0805     //  拍照上传立即应答 
 #define   MSG_0x8803           0x8803      // 存储多媒体数据上传
 #define   MSG_0x8804           0x8804      // 录音开始命令 
 #define   MSG_0x8900           0x8900      // 数据下行透传
@@ -200,6 +200,8 @@ u8  f_Worklist_SD_0701H; //   电子运单上传
      //  -----  北斗扩展----
 u8  f_BD_Extend_7F02H; // 北斗信息查询应答
 u8  f_BD_Extend_7F00H;// 扩展终端上发指令
+
+u8  f_BD_CentreTakeAck_0805H;  //  北斗0805  应答
 
 
 }TCP_ACKFlag;
@@ -561,8 +563,7 @@ typedef struct  _JT808Config   //name:  jt808
     u8       OutGPS_Flag;     //  0  默认  1  接外部有源天线 
     u8       concuss_step;    //------add by  xijing
     u8       password_flag;   //密码输入标志 
-    u8       relay_flag;      // 继电器开关状态
-
+    
      //--------  实时上报 ---------  
     REALTIME_LOCK    RT_LOCK;     // 实时跟踪      
 
@@ -786,34 +787,6 @@ typedef struct _BD_EXTEND
   
 } BD_EXTEND;
 
-
-typedef struct  _DIVIDE_RX
-{
-   u8     DividePacket_Flag;  // 分包标志位
-   u32   RX_Packet_TotalSize;  // 升级包的总长度
-   u32   Rx_Wr;   // 写入 信息地址
-   u16   RX_Total_PacketsNum;//  接收到分包的总包数
-   u16   Rx_Current_PacketsNum; // 接收到分包的 当前包数 ( 从 1   开始)
-   u8     RX_OverFlag;       // 接收完毕标志位
-
-   u8     ACK_type;    //返回结果类型  
-   u8     ACK_resualt;    // 返回给中心的结果 
-   u8     ACK_sdFlag;   //  发送返回命令标志位
-
-   u16   Get_CRC_FCS;   //  接收到的 CRC  FCS  
-   u16   Caculate_CRC_FCS;   // 计算的CRC  FCS  
-   u32   FileSize_infile;     //    114
-
-
-
-}DIVIDE_RX;
-
-
-
-//--------------------------------------------------
-extern DIVIDE_RX   DivideRx;  // 分包接收相关    add  on  2013-5-13
-
-
 //------- 北斗扩展协议  ------------
 extern BD_EXTEND     BD_EXT;     //  北斗扩展协议
 
@@ -956,7 +929,7 @@ extern u8   BakTime[3];
 extern u8   Sdgps_Time[3];  // GPS 发送 时间记录  
 
 
-extern  ALIGN(RT_ALIGN_SIZE) u8  UDP_HEX_Rx[1500];    // EM310 接收内容hex     
+extern  ALIGN(RT_ALIGN_SIZE) u8  UDP_HEX_Rx[1024];    // EM310 接收内容hex     
 extern u16 UDP_hexRx_len;    // hex 内容 长度
 extern u16 UDP_DecodeHex_Len;// UDP接收后808 解码后的数据长度   
 
@@ -1080,6 +1053,14 @@ extern int str2ip(char *buf, u8 *ip);
      ----------------------------- 
 */
 
+/*    
+     -----------------------------
+    2.3  控制输出
+     ----------------------------- 
+*/
+extern void  Enable_Relay(void);
+extern void  Disable_Relay(void);
+
 
 /*    
      -----------------------------
@@ -1132,10 +1113,10 @@ extern u8    Stuff_RecoderACK_0700H(void);   //   行车记录仪数据上传
 extern u8    Stuff_MultiMedia_InfoSD_0800H(void);      
 extern u8    Stuff_MultiMedia_Data_0801H(void);    
 extern u8    Stuff_MultiMedia_IndexAck_0802H(void);  
+extern u8    Stuff_CentreTakeACK_BD_0805H( void );	
 extern u8    Stuff_DataTransTx_0900H(void);     
 extern u8    Stuff_DriverInfoSD_0702H(void);  
 extern u8    Stuff_Worklist_0701H(void); 
-extern u8    Stufff_ISP_808_ACK_0108H(void);  
 
 extern u8    Stuff_DataTrans_0900_ISP_ACK(u8  AckType);  
 extern u8    Update_HardSoft_Version_Judge(u8 * instr);
@@ -1198,7 +1179,7 @@ extern void local_time(void);
 extern void  JT808_Related_Save_Process(void);
 extern void  Save_Status(u8 year,u8 mon,u8 day,u8 hour,u8 min,u8 sec);
 extern void  Spd_Exp_Wr(void);
-extern void  Divide_RX_Init(void);
+
 
 //==================================================================================================
 // 第五部分 :   以下是行车记录仪相关协议 即 附录A   

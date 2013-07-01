@@ -364,7 +364,7 @@ static void HMI_thread_entry(void* parameter)
 	//-------- IC card related ---------------
 	Init_4442(); 
 
-	rt_kprintf("\r\nJT808Conf_struct.password_flag=%d\r\n",JT808Conf_struct.password_flag);
+	rt_kprintf("\r\nJT808Conf_struct.password_flag=%d\r\n",JT808Conf_struct.password_flag); 
 	if(JT808Conf_struct.password_flag==0)
 	    	{
 		JT808Conf_struct.Regsiter_Status=0;   //需要重新注册

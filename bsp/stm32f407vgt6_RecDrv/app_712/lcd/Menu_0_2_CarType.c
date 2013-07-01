@@ -130,7 +130,8 @@ static void keypress(unsigned int key)
 		case KeyValueMenu:
 			pMenuItem=&Menu_0_loggingin;
 			pMenuItem->show();
-
+			CarType_counter=0;
+			CarType_Type=0;
 			break;
 		case KeyValueOk:
 			if(CarType_Type==1)
@@ -162,7 +163,7 @@ static void keypress(unsigned int key)
 					memcpy(Menu_VechileType,"中型车",6); 
 				else if(CarType_counter==6)
 					memcpy(Menu_VechileType,"小型车",6); 
-				else if(CarType_counter==6)
+				else if(CarType_counter==7)
 					memcpy(Menu_VechileType,"微型车",6); 
 				else if(CarType_counter==8)
 					memcpy(Menu_VechileType,"出租车",6);  

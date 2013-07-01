@@ -108,11 +108,7 @@ void  APP_IOpinInit(void)   //³õÊ¼»¯ ºÍ¹¦ÄÜÏà¹ØµÄIO ¹Ü½Å
    
  //==================================================================== 
  //-----------------------Ð´¼ÌµçÆ÷³£Ì¬ÏÂµÄÇé¿ö------------------
- //-----------------------Ð´¼ÌµçÆ÷³£Ì¬ÏÂµÄÇé¿ö------------------
-  if(JT808Conf_struct.relay_flag==1)
-  	GPIO_SetBits(GPIOB,GPIO_Pin_1);	 //¼ÌµçÆ÷¶Ï¿ª 
-  else
-       GPIO_ResetBits(GPIOB,GPIO_Pin_1);	 //¼ÌµçÆ÷±ÕºÏ
+  GPIO_ResetBits(GPIOB,GPIO_Pin_1);	 //Êä³ö³£Ì¬ ÖÃ 0 
  //GPIO_SetBits(GPIOB,GPIO_Pin_1);	 //Êä³ö³£Ì¬ ÖÃ 0     
 
 // GPIO_ResetBits(GPIOA,GPIO_Pin_13);	 // ¹Ø±Õ·äÃùÆ÷          
@@ -235,7 +231,7 @@ u8  FarLight_StatusGet(void)
   //  --------------J1pin4		PC0	           Ô¶¹âµÆ-----> ºÚ
 	   return (!GPIO_ReadInputDataBit(FARLIGHT_IO_Group,FARLIGHT_Group_NUM));	// PC0
 	//		 ½Ó¸ß  ´¥·
-rt_kprintf("¼ì²âµ½Òý½Å¸ß----Ô¶¹â");
+//rt_kprintf("¼ì²âµ½Òý½Å¸ß----Ô¶¹â");
 }	
 u8  NEARLight_StatusGet(void)
 {
@@ -574,7 +570,7 @@ void dispdata(char* instr)
 }
 FINSH_FUNCTION_EXPORT(dispdata, Debug disp set) ;
 
-void Socket_main_Set(u8* str) 
+void Socket_main_Set(u8* str)
 {
   u8 i=0;
   u8 reg_str[80];
@@ -1260,35 +1256,6 @@ FINSH_FUNCTION_EXPORT(Socket_main_Set,Set Socket main);
 	  #endif		  
 						return 1;
        }
-
-  void  debug_relay(u8 *str) 
-{
- if (strlen(str)==0)
-	{
-       rt_kprintf("\r\n¼ÌµçÆ÷(1:¶Ï¿ª0:±ÕºÏ)JT808Conf_struct.relay_flag=%d",JT808Conf_struct.relay_flag);
-       }
-else 
-	{
-	       if(str[0]=='1')
-		{
-		 Car_Status[2]|=0x08;     // ÐèÒª¿ØÖÆ¼ÌµçÆ÷
-		JT808Conf_struct.relay_flag=1;
-		Enable_Relay();
-		rt_kprintf("\r\n  ¶Ï¿ª¼ÌµçÆ÷,JT808Conf_struct.relay_flag=%d\r\n",JT808Conf_struct.relay_flag); 
-		}
-	else if(str[0]=='0')
-		{
-		Car_Status[2]&=~0x08;    // ÐèÒª¿ØÖÆ¼ÌµçÆ÷
-		JT808Conf_struct.relay_flag=0;
-		Disable_Relay();
-		rt_kprintf("\r\n  ½ÓÍ¨¼ÌµçÆ÷,JT808Conf_struct.relay_flag=%d\r\n",JT808Conf_struct.relay_flag); 
-		}
-	}
- Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct)); 
- rt_kprintf("\r\n(debug_relay)×´Ì¬ÐÅÏ¢,[0]=%X  [1]=%X  [2]=%X  [3]=%X",Car_Status[0],Car_Status[1],Car_Status[2],Car_Status[3]);	
- }
-FINSH_FUNCTION_EXPORT(debug_relay, Debug relay set) ;
-	
     void  Api_WriteInit_var_rd_wr(void)    //   Ð´³õÊ¼»¯»°¸÷ÀàÐÍ¶ÁÐ´¼ÇÂ¼µØÖ·
     	{
 		 DF_Write_RecordAdd(cycle_write,cycle_read,TYPE_CycleAdd); 

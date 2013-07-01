@@ -42,7 +42,7 @@ static  struct rt_semaphore app_rx_gsmdata_sem;  //  app Ìá¹©Êý¾Ý ¸øgsm·¢ËÍÐÅºÅÁ
 static  struct rt_semaphore SysRst_sem;  // system reset
 
 
-static u8  OneSec_cout=0;
+//static u8  OneSec_cout=0;
 
 u8  Udisk_Test_workState=0;  //  Udisk ¹¤×÷×´Ì¬
 u8  TF_test_workState=0;
@@ -527,31 +527,31 @@ void  MainPower_Status_Check(void)
 
 }
 
-void SIMID_Convert_SIMCODE( void ) 
+void DeviceID_Convert_SIMCODE( void ) 
 {
-		SIM_code[0] = SIM_CardID_JT808[0] - 0X30;
+		SIM_code[0] = DeviceNumberID[0] - 0X30;
 		SIM_code[0] <<= 4;
-		SIM_code[0] |= SIM_CardID_JT808[1] - 0X30;	  
+		SIM_code[0] |= DeviceNumberID[1] - 0X30;	  
 
-		SIM_code[1] = SIM_CardID_JT808[2] - 0X30;
+		SIM_code[1] = DeviceNumberID[2] - 0X30;
 		SIM_code[1] <<= 4;
-		SIM_code[1] |= SIM_CardID_JT808[3] - 0X30;	
+		SIM_code[1] |= DeviceNumberID[3] - 0X30;	
 
-		SIM_code[2] = SIM_CardID_JT808[4] - 0X30;
+		SIM_code[2] = DeviceNumberID[4] - 0X30;
 		SIM_code[2] <<= 4;
-		SIM_code[2] |= SIM_CardID_JT808[5] - 0X30;	
+		SIM_code[2] |= DeviceNumberID[5] - 0X30;	
 
-		SIM_code[3] = SIM_CardID_JT808[6] - 0X30;
+		SIM_code[3] = DeviceNumberID[6] - 0X30;
 		SIM_code[3] <<= 4;
-		SIM_code[3] |= SIM_CardID_JT808[7] - 0X30;	
+		SIM_code[3] |= DeviceNumberID[7] - 0X30;	
 
-		SIM_code[4] = SIM_CardID_JT808[8] - 0X30;
+		SIM_code[4] = DeviceNumberID[8] - 0X30;
 		SIM_code[4] <<= 4;
-		SIM_code[4] |= SIM_CardID_JT808[9] - 0X30;	
+		SIM_code[4] |= DeviceNumberID[9] - 0X30;	
 
-		SIM_code[5] = SIM_CardID_JT808[10] - 0X30;
+		SIM_code[5] = DeviceNumberID[10] - 0X30;
 		SIM_code[5] <<= 4;
-		SIM_code[5] |= SIM_CardID_JT808[11] - 0X30; 
+		SIM_code[5] |= DeviceNumberID[11] - 0X30; 
 }
 
 /*
@@ -623,8 +623,8 @@ struct rt_thread app808_thread;
 
 static void App808_thread_entry(void* parameter) 
 {
-    MSG_Q_TYPE  AppMsgQ_struct;  
-    MSG_Q_TYPE  MsgQ_gsmCome;	
+   // MSG_Q_TYPE  AppMsgQ_struct;  
+   // MSG_Q_TYPE  MsgQ_gsmCome;	
       u8   Dialstr[40];  	 
 //    u32  a=0;	
 
@@ -636,14 +636,14 @@ static void App808_thread_entry(void* parameter)
          DF_init();
  
        //  step 2:   process config data   
-         SysConfiguration();    // system config   	    
+         SysConfiguration();    // system config   	
+         Gsm_RegisterInit(); 
        //  step 3:    usb host init	   	    	//  step  4:   TF card Init    
-           SIMID_Convert_SIMCODE(); //	translate			
+           DeviceID_Convert_SIMCODE(); //	translate			
    //  	 spi_sd_init();	    
           usbh_init();    
 	   APP_IOpinInit();
           Init_ADC(); 
-	   Divide_RX_Init();// ·Ö°ü½ÓÊÕ³õÊ¼»¯  	  
 	   Car_Status[1]|=0x0C; 	  // ±±¶·   Ë«Ä£
     //  	 tf_open();      // open device 
  

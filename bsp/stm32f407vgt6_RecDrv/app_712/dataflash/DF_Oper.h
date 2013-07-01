@@ -34,10 +34,12 @@ Crystal: 3.6864Mhz
  #define DF_ProInfo_Page      0
 
 
- /*  1. page 8 -903     ISP          0x000010000~ 0x00039000  */  
-#define  DF_ISP_StartAddr                        0x00001000                          /*224K+4K  -->464 Page     1 Sector Head*/ 
-
-
+ /*  1. page 10 -903     ISP   */
+  
+#define DF_BL_PageNo		                 10             /*DF_BL_RAM run PageNo:   10  ~ 49  page */
+#define DF_APP1_PageNo		                 50             /*DF_APP_flah run PageNo:   50  ~ 903  page*/
+                                                                                   /* 512K  -->1072 Page */ 
+                                                                                          
 
  /*  2. Page  904 - 912           状态信息    */
  #define DF_Format_Page 	                     1072     // 904~911    Sector  114    (x8)=912
@@ -200,7 +202,6 @@ Crystal: 3.6864Mhz
 
 //  16  Device ID     ---河北version
 #define       DF_DeviceID_offset                      6400                 // Block 起始位置   车辆ID  12  位 BCD   
-#define       DF_SIMID_offset                           6408                 // Block 起始位置  jt808 协议 SIM 卡号 12  位 高位补0  
 
 
 //   16 .  RT   struct          from    7000    //  Block   起始位置

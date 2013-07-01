@@ -46,6 +46,8 @@ extern  void  reset(void);
 
 extern void Udisk_write_buffer(u8 *Inbuf,u16 inlen);
 extern void UDisk_Write_Test(void);
-extern void SIMID_Convert_SIMCODE( void );
+extern void DeviceID_Convert_SIMCODE( void ) ;
+extern  void   MainPower_cut_process(void);
+extern  void   MainPower_Recover_process(void);
 
 #endif

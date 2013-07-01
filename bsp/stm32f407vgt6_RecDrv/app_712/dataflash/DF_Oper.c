@@ -190,18 +190,39 @@ void DF_EraseAppFile_Area(void)
 {
     u16 i=0;
       /*
-           1.第一个扇区 存储文件前256 个字节    
-           2.从第二个字节开始  224K  =56  Sector 的区域存储 ISP 固件信息
-      */
-	   		
-        for(i=0;i<57;i++)    // 要求是512K -> 128  erase sector 6-134      128K ->  32   
+           1.先擦除0扇区   
+           2.读出page48内容并将其写到第0扇区的page 0 
+           3.读出page49内容并将其写到第0扇区的page 0
+           4.擦除 6-38扇区 即 48page 到 304 page
+           5.以后有数据过来就直接写入，不需要再擦除了 
+        */
+	
+        SST25V_SectorErase_4KByte(0x0);
+ 	 DF_delay_ms(5);   
+	 WatchDog_Feed();
+       DF_ReadFlash(48,0,SST25Temp,PageSIZE);
+	//DF_delay_ms(1);	 
+        DF_WriteFlashDirect(0,0,SST25Temp,PageSIZE);
+	 DF_delay_ms(1);	
+	 WatchDog_Feed();
+        DF_ReadFlash(49,0,SST25Temp,PageSIZE);
+        DF_WriteFlashDirect(1,0,SST25Temp,PageSIZE);
+	 DF_delay_ms(1);		
+        for(i=6;i<134;i++)    // 要求是512K -> 128  erase sector 6-134      128K ->  32   
         {
             WatchDog_Feed();
-            SST25V_SectorErase_4KByte(DF_ISP_StartAddr+((u32)(i<<12)));
+            SST25V_SectorErase_4KByte(((u32)i*4096));
 	     DF_delay_ms(5); 
 	     WatchDog_Feed();		
         }
-        rt_kprintf("\r\nSST25 ISP_clear Ready\r\n");   
+        DF_ReadFlash(0,0,SST25Temp,PageSIZE);
+        DF_WriteFlashDirect(48,0,SST25Temp,PageSIZE); 
+	 WatchDog_Feed();	
+	 DF_delay_ms(1);		
+        DF_ReadFlash(1,0,SST25Temp,PageSIZE);
+	 WatchDog_Feed(); 	
+        DF_WriteFlashDirect(49,0,SST25Temp,PageSIZE);
+        rt_kprintf("\r\nSST25Ready\r\n"); 
 
 }
 
@@ -244,7 +265,13 @@ void DF_WriteFlashDirect(u16 page_counter,u16 page_offset,u8 *p,u16 length)//512
 
 void DF_ClearUpdate_Area(void)   // 清除远程升级区域 
 {
+    u8  updata_flag=0;
+   
+	updata_flag=0;	 // 不更新下载的程序
+	DF_WriteFlash(DF_APP1_PageNo,0,&updata_flag,1); 
+	DF_delay_ms(2);
     DF_EraseAppFile_Area();   // 清除  
+
 }
 	
 

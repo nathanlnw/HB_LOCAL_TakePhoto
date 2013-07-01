@@ -12,14 +12,7 @@
 #include  <stdlib.h>
 #include  <stdio.h>
 #include  <string.h>
-#include "SMS_PDU.h"
 #include "App_moduleConfig.h"
-
-
-
-
-//3. SMS_service
-#define  SMS_ENABLE  
 
 
 //----------- ModuleStatus----------
@@ -27,9 +20,6 @@
 #define Status_GPRS 		0x02    // Bit 1:   1 连接   0 断开
 #define Status_Battery      0x04    // Bit 2:   1 用电池 0 用外电 
 #define Status_Pcheck       0x08    // Bit 3:   1 速度脉冲系数校验过   0  未被校验
-
-#define  SMS_ACK_msg          1      // 需哟返回短息
-#define  SMS_ACK_none         0      // 不需要返回短息
 
 
 // ------------  GSM  Device  define ------------
@@ -56,29 +46,6 @@ typedef struct  _SOCKET
 
 }SOCKET;
 
-#ifdef 0
-#ifdef  SMS_ENABLE
-typedef  struct _SMS
-{
-   	u8  SMIndex;    // 短信记录
-	u8  SMS_read;   // 读取短信标志位
-	u8  SMS_delALL; // 删除所有短信标志位
-	u8  SMS_come;   // 有短信过来了
-	u8  SMS_delayCounter; //短信延时器
-	u8  SMS_waitCounter;	///短信等待
-	u8  SMSAtSend[45];    //短信AT命令寄存器   
-
-	u8  SMS_destNum[15];  //  发送短息目的号码 
-	u8  SMS_sendFlag;  //  短息发送标志位
-	u8  SMS_sd_Content[150];  // 短息发送内容
-
-	//------- self sms protocol  ----
-	u8  MsgID[4];    //  自定义短息ID 
-	SmsType Sms_Info;	//解析的PDU消息的参数信息
-} SMS;
-#endif
-#endif
-
 
 
 
@@ -87,9 +54,6 @@ ALIGN(RT_ALIGN_SIZE)
 extern  uint8_t					GSM_rawinfo[GSM_RAWINFO_SIZE];
 extern struct rt_messagequeue	mq_GSM; 
 
-#ifdef SMS_ENABLE
-//extern SMS   SMS_Service;    //  短息相关 
-#endif
 
 extern u8 	ModuleStatus;   //网络状态 
 extern u8       Mocule_Data_Come; // 模块收到数据 
@@ -140,7 +104,6 @@ extern u8   PositionSD_Status(void);
 extern u8   Stop_Communicate(void);
 extern void Gsm_rxAppData_SemRelease(u8* instr, u16 inlen, u8 link_num);
 
-extern void  SMS_Process(void); 
 
 /*
          RT      相关 

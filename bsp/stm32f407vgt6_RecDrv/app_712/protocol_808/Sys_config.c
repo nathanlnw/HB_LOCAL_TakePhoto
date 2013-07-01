@@ -11,11 +11,24 @@
 #include "App_moduleConfig.h"
 #include "Device_808.h"
 
+
+#define   SYSID            0x1169              /*        
+                                                        0x0000   -----   0x00FF  生产和研发用
+                                                        0x0100   -----   0x0FFF  产品出货用
+                                                        0x1000   -----   0xF000  远程升级用
+                                                       */  
+
+
+
 ALIGN(RT_ALIGN_SIZE) 
 SYS_CONF          SysConf_struct;   //  系统配置  
 
 ALIGN(RT_ALIGN_SIZE) 
 JT808_CONF       JT808Conf_struct;   //  JT 808   相关配置 
+
+#ifdef NORMAL_CONFIG_NOT_MODIFY
+ALIGN(RT_ALIGN_SIZE)  JT808_CONF      BAK_JT808Conf_struct;   //  JT 808   相关配置 
+#endif
 
 ALIGN(RT_ALIGN_SIZE) 
 TIRED_CONF      TiredConf_struct;    //  疲劳驾驶相关配置
@@ -25,9 +38,7 @@ TIRED_CONF      TiredConf_struct;    //  疲劳驾驶相关配置
 
 
 //----------  Basic  Config---------------------------
-u8      DeviceNumberID[13];//="800130100001";    // 车辆DeviceID    ----终端ID 
-u8      SIM_CardID_JT808[13];   //  JT808 协议里上报号码BCD
-
+u8      DeviceNumberID[13];//="800130100001";    // 车辆DeviceID    ---- 河北天地通用
 u8          RemoteIP_Dnsr[4]={255,255,255,255}; 
 u8		RemoteIP_main[4]={113,31,28,100};//{125,38,185,88};//{113,31,28,101 };//{113,31,92,200};//天津{60,28,50,210}; 河北天地通 113,31,28,100                        
 u16		RemotePort_main= 8201;//天津9131;   河北天地通 8201             //test tianjin    
@@ -38,12 +49,9 @@ u8          DomainNameStr[50]="up.gps960.com"; ;  // 域名  天地通up.gps960.com /
 u8          DomainNameStr_aux[50]="up.gps960.com";     //"www.sina.com";//jt2.gghypt.net
          // DomainNameStr[50]="11"; ;  // 域名  天地通up.gps960.com //jt1.gghypt.net
           // DomainNameStr_aux[50]="11";     //"www.sina.com";//jt2.gghypt.net
-u16         ACC_on_sd_Duration=30;    //  ACC 开启的时候 上报的时间间隔  
+u16         ACC_on_sd_Duration=30;    //  ACC 开启的时候 上报的时间间隔     
 u16         ACC_off_sd_Duration=60;    //  ACC 关闭时候上报的时间间隔  
 u8          TriggerSDsatus=0x80;   // 传感器触发上报状态位
-
-
-
 
 
 
@@ -224,6 +232,7 @@ u8  SysConfig_init(void)
    //    2. Operate
             return(Api_Config_write(config,ID_CONF_SYS,(u8*)&SysConf_struct,sizeof(SysConf_struct)));       
 
+
 }
 
 void SysConfig_Read(void)
@@ -335,6 +344,7 @@ u8     JT808_Conf_init( void )
                          //  JT808Conf_struct.
                  JT808_SendDistances_Init();
 		   JT808_SendMode_Init();
+
 		   JT808Conf_struct.LOAD_STATE=1; //  负载状态
 		   
 		   memset((u8*)JT808Conf_struct.ConfirmCode,0,sizeof(JT808Conf_struct.ConfirmCode));
@@ -372,8 +382,12 @@ u8     JT808_Conf_init( void )
    	
                 JT808Conf_struct.OutGPS_Flag=1;     //  0  默认  1  接外部有源天线 
                 JT808Conf_struct.concuss_step=40;
-	         JT808Conf_struct.password_flag=0;//初次为0，设置好后为1 
-		   JT808_RealTimeLock_Init();   //  实时跟踪设置	
+		   #ifndef NORMAL_CONFIG_NOT_MODIFY			
+                        JT808Conf_struct.password_flag=0;//初次为0，设置好后为1 
+		   #else
+	                 JT808Conf_struct.password_flag=1;//初次为0，设置好后为1  
+	          #endif     
+		   JT808_RealTimeLock_Init();   //  实时跟踪设置	 
 
 		    		 
                  memset((u8*)&(JT808Conf_struct.StdVersion),0,sizeof(JT808Conf_struct.StdVersion));  // 标准国家版本 
@@ -384,15 +398,24 @@ u8     JT808_Conf_init( void )
 
 		  memset((u8*)&(JT808Conf_struct.Driver_Info),0,sizeof(JT808Conf_struct.Driver_Info)); 	  // 驾驶员信息						
 		//--------------------------------------------------------------------------
-		
+		#ifndef NORMAL_CONFIG_NOT_MODIFY
 		  memcpy(JT808Conf_struct.Driver_Info.DriveCode,"000",3);  
 		  memcpy(JT808Conf_struct.Driver_Info.DriverCard_ID,"000000000000000000",18);  
 		  memcpy(JT808Conf_struct.Driver_Info.DriveName,"未知",4);   
 		  memcpy(JT808Conf_struct.Driver_Info.Driver_ID,"000000000000000000",18);  
 		  memcpy(JT808Conf_struct.Driver_Info.Drv_CareerID,"0000000000000000000000000000000000000000",40); 
 		  memcpy(JT808Conf_struct.Driver_Info.Comfirm_agentID,"000000000000000",16);
-							
-  	          JT808_Vehicleinfo_Init();
+	     #else
+		            //      驾驶员相关信息保留
+                           memcpy((u8*)&(JT808Conf_struct.Driver_Info),(u8*)&(BAK_JT808Conf_struct.Driver_Info),sizeof(JT808Conf_struct.Driver_Info));
+	      #endif
+
+                #ifndef NORMAL_CONFIG_NOT_MODIFY	
+                 JT808_Vehicleinfo_Init();	   	
+		  #else
+		      //       车辆 相关信息保留
+		       memcpy((u8*)&JT808Conf_struct.Vechicle_Info,(u8*)&BAK_JT808Conf_struct.Vechicle_Info,sizeof(JT808Conf_struct.Vechicle_Info));
+	         #endif	  
        
 
        //    3. Operate
@@ -1247,7 +1270,7 @@ void  FirstRun_Config_Write(void)
        //  rt_kprintf("\r\n  sizeof(sysconfig): %d   sizeof(jt808): %d    sizeof(tiredconfig): %d   \r\n",sizeof(SysConf_struct),sizeof(JT808Conf_struct),sizeof(TiredConf_struct)); 
                   SysConfig_init();   //  写入系统配置信息
                   TIRED_CONF_Init(); //  写入疲劳驾驶相关配置信息
-                 JT808_Conf_init();   //  写入 JT808   配置信息
+                  JT808_Conf_init();   //  写入 JT808   配置信息
                   Api_WriteInit_var_rd_wr();	
 		    BD_EXT_initial(); 		  
                  Event_Write_Init();
@@ -1260,35 +1283,6 @@ void  FirstRun_Config_Write(void)
                  TEXTMSG_Write_Init();	   
  		 
 
-}
-//-----------------------------------------------------------------
-void SetConfig(void)
-{
-       u8  res=0;
-	u8 Reg_buf[22];	 
-	u8 i=0;//,len_write=0;
-//	u32 j=0;
-	
-       rt_kprintf("\r\nSave Config\r\n");
-	// 1.  读取config 操作      0 :成功    1 :  失败
-	res=Api_Config_read(config,ID_CONF_SYS,(u8*)&SysConf_struct,sizeof(SysConf_struct));  
-       //rt_kprintf("\r\nRead Save SYSID\r\n");
-       //  2. 读取成功  ，判断  版本ID 
-	if(SysConf_struct.Version_ID!=SYSID)//SYSID)   //  check  wether need  update  or not 
-	{
-	       rt_kprintf("\r\n ID not Equal   Saved==0x%X ,  Read==0x%X !\r\n",SYSID,SysConf_struct.Version_ID);	
-	        SysConf_struct.Version_ID=SYSID;  // update  ID 
-             //  2.1   先删除 
-               // Delete_exist_Directory();
-	     //  2.2  重新写入		 
-                 FirstRun_Config_Write();   // 里边更新了 SYSID                 
-
-	       //  2.3  DeviceID 河北(必须去掉，有这句SYSID改变了)
-		//DF_WriteFlashSector(DF_DeviceID_offset,0,(u8*)DeviceNumberID,13);  
-	  	   rt_kprintf("\r\nSave Over!\r\n");
-	}
-	else			
-		   rt_kprintf("\r\n Config Already Exist!\r\n"); 
 }
 
  void ReadConfig(void) 
@@ -1311,9 +1305,6 @@ void SetConfig(void)
 		   //---- 河北天地通 设备ID  --------	
 		  memset(DeviceNumberID,0,sizeof(DeviceNumberID));
 		  DF_ReadFlash(DF_DeviceID_offset,0,(u8*)DeviceNumberID,12);  
-		  //--------  SIM ID -----------------------
-		  memset(SIM_CardID_JT808,0,sizeof(SIM_CardID_JT808));
-		  DF_ReadFlash(DF_SIMID_offset,0,(u8*)SIM_CardID_JT808,12);  
 
 
 		   
@@ -1329,6 +1320,43 @@ void SetConfig(void)
        
     rt_kprintf("\r\n Read Config Over \r\n");   
 }
+
+//-----------------------------------------------------------------
+void SetConfig(void)
+{
+       u8  res=0;
+	u8 Reg_buf[22];	 
+	u8 i=0;//,len_write=0;
+//	u32 j=0;
+	
+       rt_kprintf("\r\nSave Config\r\n");
+	// 1.  读取config 操作      0 :成功    1 :  失败
+	res=Api_Config_read(config,ID_CONF_SYS,(u8*)&SysConf_struct,sizeof(SysConf_struct));  
+       //rt_kprintf("\r\nRead Save SYSID\r\n");
+       //  2. 读取成功  ，判断  版本ID 
+	if(SysConf_struct.Version_ID!=SYSID)//SYSID)   //  check  wether need  update  or not 
+	{
+	
+	       rt_kprintf("\r\n ID not Equal   Saved==0x%X ,  Read==0x%X !\r\n",SYSID,SysConf_struct.Version_ID);	
+	        SysConf_struct.Version_ID=SYSID;  // update  ID 
+ 
+               #ifdef NORMAL_CONFIG_NOT_MODIFY
+	         //      先读取到BAK 		   
+	                  Api_Config_read(jt808,0,(u8*)&BAK_JT808Conf_struct,sizeof(BAK_JT808Conf_struct));   //  读取JT808   配置信息
+	        #endif   	 		
+             //  2.1   先删除 
+               // Delete_exist_Directory();
+	     //  2.2  重新写入		 
+                 FirstRun_Config_Write();   // 里边更新了 SYSID                 
+
+	       //  2.3  DeviceID 河北(必须去掉，有这句SYSID改变了)
+		//DF_WriteFlashSector(DF_DeviceID_offset,0,(u8*)DeviceNumberID,13);  
+	  	   rt_kprintf("\r\nSave Over!\r\n");
+	}
+	else			
+		   rt_kprintf("\r\n Config Already Exist!\r\n"); 
+}
+ 
 void DefaultConfig(void)
 {
    u32 DriveCode32=0,i=0;
@@ -1343,20 +1371,6 @@ void DefaultConfig(void)
   	   rt_kprintf("\r\n		   该终端已经注册过!    %d \r\n",JT808Conf_struct.Regsiter_Status);  
   else
   	   rt_kprintf("\r\n		   该终端被尚未被注册!\r\n");   
-
-        rt_kprintf("\r\n中心控制断电= %d (1 : 断电  0 : 正常)\r\n", JT808Conf_struct.relay_flag);    
-     if(JT808Conf_struct.relay_flag==1)
-	     	{
-	 	Enable_Relay();
-		 Car_Status[2]|=0x08;     // 需要控制继电器
-		 }
- 	else
- 		{
-		Disable_Relay();
-		Car_Status[2]&=~0x08;    // 需要控制继电器
-		rt_kprintf("\r\n继电器闭合");
- 		}
-  
         // APN 设置
 	  rt_kprintf("\r\n		   APN 设置 :%s	 \r\n",APN_String); 
          DataLink_APN_Set(APN_String,1); 
@@ -1489,29 +1503,18 @@ void DefaultConfig(void)
 		rt_kprintf("\r\n");
 		}  
 
-        	          //------------------------------------------------------------
-	if( SIM_CardID_JT808[0]==0xFF)
-		rt_kprintf("\r\n  =======> 尚未设置SIMID 编号，请重新设置\r\n" );  
-	else
-		{
-		rt_kprintf("\r\n 读取SIMID为 : "); 
-		for(i=0;i<12;i++)
-			rt_kprintf("%c",SIM_CardID_JT808[i]);
-		rt_kprintf("\r\n");
-		}  
 
 	//------------------------------------------------------------	  	 
  
 }
-FINSH_FUNCTION_EXPORT(DefaultConfig, DefaultConfig ); 
-
 
 /*
 读参数配置文件
 */
 	void SysConfiguration(void)
 	{
-			SetConfig();  
+	            
+		       SetConfig(); // ----- ISP  不修改既有参数
 			ReadConfig();
 			DefaultConfig();      
 	}
@@ -1595,7 +1598,7 @@ void deviceid(u8 *str)
 				       value=1;
 					   break;
              	   } 
-             	} 
+             	}
 
 			 if(value)
 			 	{
@@ -1616,7 +1619,7 @@ void deviceid(u8 *str)
 		  delay_ms(80); 		  
 		  rt_kprintf("\r\n 手动设备ID设置为 : ");  
 		  DF_ReadFlash(DF_DeviceID_offset,0,DeviceNumberID,13);    
-		  SIMID_Convert_SIMCODE();  // 转换 
+		  DeviceID_Convert_SIMCODE();  // 转换 
 		  for(i=0;i<12;i++)
 		  	rt_kprintf("%c",DeviceNumberID[i]);
 		  rt_kprintf("\r\n");
@@ -1624,65 +1627,6 @@ void deviceid(u8 *str)
 		}
 }
 FINSH_FUNCTION_EXPORT(deviceid, deviceid set); 
-
-
-
-void simid(u8 *str)
-{
-
-	  u8 i=0,value=0;
-	  u8 reg_str[20];
-	 
-	    memset(reg_str,0,sizeof(reg_str));
-	     if (strlen((const char*)str)==0){
-		   rt_kprintf("\r\n SIMID为 : "); 
-		  for(i=0;i<12;i++)
-		  	rt_kprintf("%c",SIM_CardID_JT808[i]); 
-		  rt_kprintf("\r\n");
-			return ;
-		}
-		else 
-		{	   
-          //---- check -------
-          memcpy(reg_str,str,strlen((const char*)str));	
-          if((strlen((const char*)reg_str)==12)|| (strlen((const char*)reg_str)==13) )//  长度判断
-          {
-             for(i=0;i<12;i++)
-             	{ 
-             	   if(!((reg_str[i]>='0')&&(reg_str[i]<='9')))
-				   {
-				       value=1;
-					   break;
-             	   } 
-             	}
-
-			 if(value)
-			 	{
-			 	  rt_kprintf("\r\n 手动设置 SIMID不合法!  \r\n");   
-                  return ;
-			 	} 
-
-          }
-		  else
-		  	{
-		  	    rt_kprintf("\r\n 手动设置 SIMID 长度不正确!  \r\n");   
-                return ;
-		  	}	
-		 
-		  memset(SIM_CardID_JT808,0,sizeof(SIM_CardID_JT808));
-		  memcpy(SIM_CardID_JT808,reg_str,12);								 
-		  DF_WriteFlashSector(DF_SIMID_offset,0,SIM_CardID_JT808,13); 
-		  delay_ms(80); 		  
-		  rt_kprintf("\r\n 手动SIMID设置为 : ");  
-		  DF_ReadFlash(DF_SIMID_offset,0,SIM_CardID_JT808,13);    
-		  SIMID_Convert_SIMCODE();  // 转换 
-		  for(i=0;i<12;i++)
-		  	rt_kprintf("%c",SIM_CardID_JT808[i]);
-		  rt_kprintf("\r\n");
-	         return ;
-		}
-}
-FINSH_FUNCTION_EXPORT(simid, simid set); 
 
 void cycle_add(void)
 {

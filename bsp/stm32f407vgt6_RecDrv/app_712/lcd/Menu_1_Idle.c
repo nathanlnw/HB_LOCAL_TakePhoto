@@ -5,8 +5,8 @@
 
 unsigned char dispstat=0;
 unsigned char tickcount=0;
-unsigned char RetrySet_flag=0;
 unsigned int  reset_firstset=0;
+unsigned char deviceID_set_num=0;
 
 unsigned char gsm_g[]={
 0x1c,					/*[   ***  ]*/
@@ -150,18 +150,27 @@ else
 }
 void  Disp_Idle(void)
 {
-   u8 i=0;
+u8 i=0;
    u16  disp_spd=0;
+   u8  Date[3],Time[3];
+
+	Date[0]= time_now.year;
+	Date[1]= time_now.month;
+	Date[2]= time_now.day;
+
+	Time[0]= time_now.hour;
+	Time[1]= time_now.min;
+	Time[2]= time_now.sec;
 
 	for(i=0;i<3;i++)
-		Dis_date[2+i*3]=Temp_Gps_Gprs.Date[i]/10+'0';
+		Dis_date[2+i*3]=Date[i]/10+'0';
 	for(i=0;i<3;i++)
-		Dis_date[3+i*3]=Temp_Gps_Gprs.Date[i]%10+'0';
+		Dis_date[3+i*3]=Date[i]%10+'0';
 
 	for(i=0;i<3;i++)
-		Dis_date[12+i*3]=Temp_Gps_Gprs.Time[i]/10+'0';
+		Dis_date[12+i*3]=Time[i]/10+'0';
 	for(i=0;i<3;i++)
-		Dis_date[13+i*3]=Temp_Gps_Gprs.Time[i]%10+'0';
+		Dis_date[13+i*3]=Time[i]%10+'0'; 
 
        //----------------速度--------------------------
 	 disp_spd=Speed_gps/10;
@@ -239,20 +248,30 @@ static void keypress(unsigned int key)
 		{
 		case KeyValueMenu:
 			CounterBack=0;
-		    SetVIN_NUM=1;
+		       SetVIN_NUM=1;
 			OK_Counter=0;
 			
 			CounterBack=0;
 			UpAndDown=1;//
 			
-			RetrySet_flag=0;//采集特征系数仅在待机界面有效
-
 			pMenuItem=&Menu_2_InforCheck;
 			pMenuItem->show();
-            reset_firstset=0;
+                     reset_firstset=0;
+					 
+			deviceID_set_num=0;
 			break;
 		case KeyValueOk:
-			RetrySet_flag=1;
+			if(deviceID_set_num==0)
+				deviceID_set_num=1;
+			else if(deviceID_set_num==1)
+				deviceID_set_num=2;
+			else if(deviceID_set_num==2)
+				deviceID_set_num=3;
+			else if(deviceID_set_num==3)
+				deviceID_set_num=4;
+			else if(deviceID_set_num==4)
+				deviceID_set_num=5;
+			
 			if(reset_firstset==0)
 				reset_firstset=1;
 			else if(reset_firstset==3)
@@ -261,8 +280,17 @@ static void keypress(unsigned int key)
 				reset_firstset=5;	
 			break;
 		case KeyValueUP:
-			if(RetrySet_flag==1)
-				RetrySet_flag=2;
+			if(deviceID_set_num==5)
+				deviceID_set_num=6;
+			else if(deviceID_set_num==6)
+				deviceID_set_num=7;
+			else if(deviceID_set_num==7)
+				deviceID_set_num=8;
+			else if(deviceID_set_num==8)
+				deviceID_set_num=9;
+			else if(deviceID_set_num==9)
+				deviceID_set_num=10;
+			
 			if(reset_firstset==1)
 				reset_firstset=2;
 			else if(reset_firstset==2)
@@ -271,29 +299,12 @@ static void keypress(unsigned int key)
 				reset_firstset=6;
 			break;
 		case KeyValueDown:
-            reset_firstset=0;
-			if(RetrySet_flag==2)
-				{
-				RetrySet_flag=0;
-				pMenuItem=&Menu_0_0_password;//&Menu_SetTZXS;  // 以前是自检---现在是设置界面
-				pMenuItem->show();
-				// ----清除鉴权码 --需要重新注册重新鉴权
-				/*memset(Reg_buf,0,sizeof(Reg_buf));
-				DevRegisterFlag=0;
-				Reg_buf[20]=DevRegisterFlag;	  						
-				DF_WriteFlashSector(DF_DevConfirmCode_Page,0,(u8*)Reg_buf,21);	
-				Vechicle_Info.DevoceEffectFlag=0;
-				AT_Stage(AT_Idle);
-				*/   	 
-				}
-			else
-				{
-				//打印开电
-				GPIO_SetBits(GPIOB,GPIO_Pin_7);
-				if(print_rec_flag==0)
-					print_rec_flag=1;//打印标志
-				}
-
+                     reset_firstset=0;
+		       deviceID_set_num=0;
+					 
+			//打印开电
+			GPIO_SetBits(GPIOB,GPIO_Pin_7);
+			print_rec_flag=1;//打印标志
 			break;
 		}
 	KeyValue=0;	
@@ -302,19 +313,23 @@ static void keypress(unsigned int key)
 static void timetick(unsigned int systick)  
 {
 	//u8 Reg_buf[22];  
-	
-if(reset_firstset==6)
+if(deviceID_set_num==10)
+	{
+	deviceID_set_num=0;
+	pMenuItem=&Menu_0_11_deviceID;
+	pMenuItem->show();
+	}	
+else if(reset_firstset==6)
 	{
 	reset_firstset++;
 	//----------------------------------------------------------------------------------	
-		JT808Conf_struct.password_flag=0;     // clear  first flag		
-		Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct));    
-	//----------------------------------------------------------------------------------
+	JT808Conf_struct.password_flag=0;     // clear  first flag		
+	Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct));    
+      //----------------------------------------------------------------------------------
 	}
-else if((reset_firstset>=7)&&(reset_firstset<=1207))//50ms一次,,60s
+else if(reset_firstset>=7)//50ms一次,,60s
 	{
-	if(reset_firstset==1207)
-		reset_firstset=0;
+	reset_firstset++;
 	lcd_fill(0);
 	lcd_text12(0,3,"需重新设置车牌号和ID",20,LCD_MODE_SET);
 	lcd_text12(24,18,"重新加电查看",12,LCD_MODE_SET); 
@@ -332,10 +347,10 @@ else
 		}
 	//循环显示待机界面
 	tickcount++;
-	if(tickcount>=10) 
+	if(tickcount>=16) 
 		{
 		tickcount=0;
-	    Disp_Idle();
+	       Disp_Idle();
 		}
 	}
     

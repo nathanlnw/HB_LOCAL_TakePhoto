@@ -1,7 +1,7 @@
 #include "Menu_Include.h"
 #include "Lcd.h"
 
-u8 tickcount_sig=0;
+static  u8 signal_counter=0;
 
 static void msg( void *p)
 {
@@ -46,18 +46,18 @@ static void keypress(unsigned int key)
 
 static void timetick(unsigned int systick)
 {
-    //Ñ­»·ÏÔÊ¾
-	tickcount_sig++;
-	if(tickcount_sig>=6) 
-		{
-		tickcount_sig=0;
-	    msg(XinhaoStatus);
-		}
-	
+      signal_counter++;
+      if(signal_counter>=10)
+	      	{
+	      	signal_counter=0;
+	       msg(XinhaoStatus);
+	      	}
+	  
 	CounterBack++;
 	if(CounterBack!=MaxBankIdleTime)
 		return;
 	CounterBack=0;
+	
 	pMenuItem=&Menu_1_Idle;
 	pMenuItem->show();
 

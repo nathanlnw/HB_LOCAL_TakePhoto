@@ -71,9 +71,9 @@ static void keypress(unsigned int key)
 		              //-----------------------------------------------------------	
 				    JT808Conf_struct.Regsiter_Status=0; 
 				    memset(Reg_buf,0,sizeof(Reg_buf));
-				    memcpy(JT808Conf_struct.ConfirmCode,Reg_buf,20);
+				    memcpy(Reg_buf,JT808Conf_struct.ConfirmCode,20);
 				    Reg_buf[20]=JT808Conf_struct.Regsiter_Status;			
-		            Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct));   
+		                  Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct));   
 				//---------------------------------------------------------------
 				lcd_fill(0); 
 				lcd_text12(24,10,"¼øÈ¨ÂëÒÑÇå¿Õ",12,LCD_MODE_SET);

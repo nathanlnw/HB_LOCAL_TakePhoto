@@ -891,16 +891,6 @@
               <FileType>5</FileType>
               <FilePath>.\app_712\protocol_808\Sys_config.h</FilePath>
             </File>
-            <File>
-              <FileName>CRC.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\app_712\protocol_808\CRC.c</FilePath>
-            </File>
-            <File>
-              <FileName>CRC.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\app_712\protocol_808\CRC.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1402,19 +1392,24 @@
               <FilePath>.\app_712\lcd\SED1520.c</FilePath>
             </File>
             <File>
+              <FileName>Menu_0_5_speedtype.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\app_712\lcd\Menu_0_5_speedtype.c</FilePath>
+            </File>
+            <File>
               <FileName>Menu_0_3_VIN.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\app_712\lcd\Menu_0_3_VIN.c</FilePath>
             </File>
             <File>
-              <FileName>Menu_0_4_Sim.c</FileName>
+              <FileName>Menu_0_4_Colour.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\app_712\lcd\Menu_0_4_Sim.c</FilePath>
+              <FilePath>.\app_712\lcd\Menu_0_4_Colour.c</FilePath>
             </File>
             <File>
-              <FileName>Menu_0_5_Colour.c</FileName>
+              <FileName>Menu_0_11_deviceID.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\app_712\lcd\Menu_0_5_Colour.c</FilePath>
+              <FilePath>.\app_712\lcd\Menu_0_11_deviceID.c</FilePath>
             </File>
           </Files>
         </Group>

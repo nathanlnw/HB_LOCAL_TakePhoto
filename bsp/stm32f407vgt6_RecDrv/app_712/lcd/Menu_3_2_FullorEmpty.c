@@ -48,41 +48,49 @@ switch(KeyValue)
 			lcd_text12(12,10,"发送车辆状态",12,LCD_MODE_SET);
 			lcd_text12(88,10,(char *)car_status_str[CarStatus_change],4,LCD_MODE_SET);
 			lcd_update_all();
-			JT808Conf_struct.LOAD_STATE=CarStatus_change;
-			Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct));
 			}
 		else if(CarStatus_screen==1)
 			{
-			CarStatus_screen=2;	
-			/*memset(send_data,0,sizeof(send_data));
-			send_data[0]=0x0F;
-			send_data[1]=0xF0;
-			send_data[2]=0x00;
-			send_data[3]=0x00;
-			send_data[4]=CarStatus_change+1;
-			rt_mb_send(&mb_hmi, (rt_uint32_t)&send_data[0]);*/
+			CarStatus_screen=2;
+                     JT808Conf_struct.LOAD_STATE=CarStatus_change;
+			Api_Config_Recwrite_Large(jt808,0,(u8*)&JT808Conf_struct,sizeof(JT808Conf_struct));
+
+		      Car_Status[2]&=~0x03;      //  空载
+	             if(CarStatus_change==1)
+				Car_Status[2]|=0x01;   //半载
+			else if(CarStatus_change==2)
+				Car_Status[2]|=0x03;   //满载
+
+            //上报位置信息
+			PositionSD_Enable();
+			Current_UDP_sd=1;
 
 			lcd_fill(0);
 			lcd_text12(20,10,(char *)car_status_str[CarStatus_change],4,LCD_MODE_SET);
 			lcd_text12(48,10,"发送成功",8,LCD_MODE_SET);
 			lcd_update_all();
+
+			CarStatus_change=1;//选择
+			CarStatus_screen=0;//界面切换使用
 			}
 		break;
 	case KeyValueUP:
 		if(CarStatus_screen==0)
-			{			
-			CarStatus_change--;
+			{
 			if(CarStatus_change<=0)
-				CarStatus_change=0;
+				CarStatus_change=2;
+			else
+				CarStatus_change--;
 			CarStatus(CarStatus_change);
 			}
 		break;
 	case KeyValueDown:
 		if(CarStatus_screen==0)
-			{		
-			CarStatus_change++;
+			{
 			if(CarStatus_change>=2)
-				CarStatus_change=2;
+				CarStatus_change=0;
+			else
+				CarStatus_change++;
 			CarStatus(CarStatus_change);
 			}
 		break;

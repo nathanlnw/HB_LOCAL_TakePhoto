@@ -1429,6 +1429,7 @@ rt_err_t gps_upgrade( char *src )
 			rt_kprintf( "\n Upgrade from uart fail\n" );
 		}
 	}
+	return 1;
 }
 
 FINSH_FUNCTION_EXPORT( gps_upgrade, upgrade bd_gps );

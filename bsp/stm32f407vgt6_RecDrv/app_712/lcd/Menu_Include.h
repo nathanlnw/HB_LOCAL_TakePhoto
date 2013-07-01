@@ -121,10 +121,11 @@ ALIGN(RT_ALIGN_SIZE)extern  MENUITEM    *pMenuItem;
 ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_0_password;
 ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_1_license;
 ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_2_CarType;
-ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_3_vin;
-ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_4_Sim;
-ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_5_Colour;
+ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_3_VIN;
+ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_5_speedtype;
+ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_4_Colour;
 ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_loggingin;
+ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_0_11_deviceID;
 
 ALIGN(RT_ALIGN_SIZE)extern  MENUITEM	Menu_1_Idle;
 
@@ -175,7 +176,6 @@ extern unsigned char SetTZXSFlag,SetTZXSCounter;//SetTZXSFlag  1:Ð£×¼³µÁ¾ÌØÕ÷ÏµÊ
 extern unsigned char OUT_DataCounter,DataOutStartFlag,DataOutOK;
 extern unsigned char Rx_TZXS_Flag;
 extern unsigned char battery_flag,tz_flag;
-extern unsigned char USB_insertFlag;
 
 extern unsigned char BuzzerFlag;
 extern unsigned char DaYin;
@@ -211,14 +211,16 @@ extern unsigned char print_rec_flag;
 
 
 //------------ Ê¹ÓÃÇ°Ëø¶¨Ïà¹Ø ------------------
-extern unsigned char Menu_Car_license[10];//´æ·Å³µÅÆºÅÂë
-extern u8  Menu_VechileType[10];  //  ³µÁ¾ÀàÐÍ
-extern u8  Menu_VecLogoColor[10]; // ³µÅÆÑÕÉ« 
+extern u8 Menu_Vin_Code[20];
+extern u8 Menu_Car_license[10];//´æ·Å³µÅÆºÅÂë
+extern u8 Menu_Sim_Code[12];
+extern u8 Menu_VechileType[10];  //  ³µÁ¾ÀàÐÍ
+extern u8 Menu_VecLogoColor[10]; // ³µÅÆÑÕÉ« 
 extern u8 Menu_color_num; 
-extern u8 Menu_Vin_Code[17];
-extern u8 Menu_sim_Code[12];
+extern u8 menu_speedtype;  //ËÙ¶È»ñÈ¡·½Ê½   0:gpsËÙ¶È     1:´«¸ÐÆ÷ËÙ¶È
 extern u8 menu_color_flag;
-
+//----------------ÉèÖÃdeviceID------------------------
+extern u8 Menu_deviceID_Code[12];
 
 extern void Cent_To_Disp(void);
 extern void version_disp(void);

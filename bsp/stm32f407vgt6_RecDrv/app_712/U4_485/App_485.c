@@ -26,6 +26,7 @@
  _MultiTake     MultiTake;	  //  多路拍照状态位 
  u8  SingleCamera_TakeRetry=0; // 单路摄像头拍照时，重拍次数计数
  Camera_state CameraState; 
+  u8  SingleCamra_TakeResualt_BD=0;   // 单路拍照结果
  u8    TX_485const_Enable=0;   // 使能发送标志位  
  u8 	  last_package=0; // 拍照最后一包标识
 
@@ -206,8 +207,9 @@ void  Camra_Take_Exception(void)
                     SingleCamera_TakeRetry++;
 					if(SingleCamera_TakeRetry>=3)
 						{
-                             SingleCamera_TakeRetry=0;//clear
+                                                  SingleCamera_TakeRetry=0;//clear
 							 rt_kprintf("\r\n     单路拍照超过最大次数!\r\n");  
+							 SingleCamra_TakeResualt_BD=1;
 						}
 					else
 					   	{    // continue operate this  camera 
@@ -267,146 +269,6 @@ u8   Camera_Take_Enable(void)
 	   else
 	   	   return false;
    }
-
-// ----------------------  语音盒处理程序  ------------------------------
-void Voice_Dev_Init(void)
-{
-  Dev_Voice.Poll_Enble=1;  
-  Dev_Voice.CMD_Type='0';
-  Dev_Voice.Work_State=0;
-  Dev_Voice.Sd_Timer=0;
-  Dev_Voice.info_sdFlag=0;
-  Dev_Voice.Rec_runFlag=0; 
-  Dev_Voice.Voice_FileOperateFlag=0;
-  Dev_Voice.Centre_RecordFlag=0; 
-   Dev_Voice.Voice_PageCounter=0;  
-}
-void  Voice_Dev_Rxprocess(void)
-{
-    u16  len=0;//,wrlen=0;i=0;
-#if 0	
-  len=(_485_content[3]<<8)+_485_content[4]-1; 
-  switch(_485_content[5])
-  	{
- 	   case '0':  // 停止采集语音盒数据  应答 	    
- 	              if((Dev_Voice.CMD_Type!='0')&&(Dev_Voice.info_sdFlag==0))  // 只有不等且信息标志为0才置 
-				      Dev_Voice.CMD_Type='0'; 
-				  Dev_Voice.Work_State=0; 		  		  
-	              break;
-	   case '1':  // 语音数据		
-	              Dev_Voice.info_sdFlag=0;   
-				  if(Dev_Voice.Voice_FileOperateFlag==1)  // 在命令为 1 时 采集记录
-				  {
-				     // rt_kprintf("\r\n Rxlen= %d \r\n",len);                       
-                      //-----------  每包有效字节500 但是写 512   后边的12字节是空的  --------------
-                      memset(Dev_Voice.Voice_Reg, 0,512); 
-					  memcpy(Dev_Voice.Voice_Reg, _485_content+6,len);  //写内容					  
-					  if(TF_Card_Status()==1)
-						 {	;	
-						    /*          rt_kprintf("\r\n -s\r\n");
-						            //rt_kprintf("Head-wr : %X %X %X %X \r\n",Dev_Voice.Voice_Reg[0],Dev_Voice.Voice_Reg[1],Dev_Voice.Voice_Reg[2],Dev_Voice.Voice_Reg[3]);
-									Dev_Voice.Voice_FileSize+=len; //有数据时是 500 没有时候为O
-									if(len==0) 
-										 break;   
-									
-									//edit_file(Dev_Voice.FileName,Dev_Voice.Voice_Reg,512); 	  //写信息到TF  
-									DF_WriteFlashDirect(SoundStart_offdet+Dev_Voice.Voice_PageCounter,0,Dev_Voice.Voice_Reg,500);  
-									Dev_Voice.Voice_PageCounter++; 
-									//DF_ReadFlash(SoundStart_offdet+Dev_Voice.Voice_PageCounter-1,0,Dev_Voice.Voice_Reg,500);  
-						            //rt_kprintf("Head-Rd : %X %X %X %X \r\n",Dev_Voice.Voice_Reg[0],Dev_Voice.Voice_Reg[1],Dev_Voice.Voice_Reg[2],Dev_Voice.Voice_Reg[3]);
-									
-							if(Dev_Voice.Centre_RecordFlag)
-								{	
-									
-								   if(Dev_Voice.Voice_FileSize>=15000) //  15秒 的数据  
-								   {
-									  Dev_Voice.CMD_Type='0';
-									  Dev_Voice.info_sdFlag=0;	  
-									  Dev_Voice.Voice_FileOperateFlag=0;
-									  Dev_Voice.Centre_RecordFlag=0; // 清空中心录音标志位                                       
-									  rt_kprintf("\r\n ---------   中心录音地址	  VoiceFileSize %d Bytes \r\n",Dev_Voice.Voice_FileSize);
-									  Dev_Voice.Centre_RecordFlag=0;
-
-									  Sound_SaveEnd();
-									  Sound_send_start(); //开始上传
-									  
-								   	}
-								} */   
-						 }  
-				  	}    				  
-                  break;
-	   case '2':  // 收到语音播报应答
-                  Dev_Voice.CMD_Type='0'; 
-				  Dev_Voice.Work_State=0;   
-				  Dev_Voice.info_sdFlag=0;
-	              break;
-	   default:
-	   	          break;  	   
-  	}
-  #endif
- /* 
-  rt_kprintf("\r\n RX content:");    
-  for(i=0;i<len+8;i++)
-     rt_kprintf(" %x",_485_content[i]); 
-  rt_kprintf("\r\n"); 
- */
-}
-									 
-void  Voice_Dev_Txprocess(void)
-{
-   u8 Send[250];
-   u16  Vinfolen=0,i, V_wr=0;
-   u8  Vfcs=0;
-
-    memset(Send,0,sizeof(Send));
-	V_wr=0;
-    Send[V_wr++]=0x40;
-	Send[V_wr++]=0x40;
-	Send[V_wr++]=0x81; // 主机
-    if(Dev_Voice.info_sdFlag==1)
-    {
-       Vinfolen=1+strlen((const char*)Dev_Voice.Play_info);
-	   Send[V_wr++]=Vinfolen>>8;
-	   Send[V_wr++]=Vinfolen; 
-	   Send[V_wr++]=Dev_Voice.CMD_Type; 
-	   memcpy(Send+6,Dev_Voice.Play_info,strlen((const char*)Dev_Voice.Play_info));   
-	   V_wr+=strlen((const char*)Dev_Voice.Play_info);
-    }
-	else
-	{      
-	  Vinfolen=1;
-	  Send[V_wr++]=Vinfolen>>8;
-	  Send[V_wr++]=Vinfolen; 
-	  Send[V_wr++]=Dev_Voice.CMD_Type;       
-	}
-     Vfcs=0;
-	 for(i=0;i<Vinfolen+2;i++) // 长度 2 个字节 所以加 2
-	 	{
-          Vfcs^=Send[3+i];
-	 	}
-	 Send[V_wr++]=Vfcs;
-	 Send[V_wr++]=0x0D;
-	 Send[V_wr++]=0x0A; 
-
-      if(Dev_Voice.CMD_Type=='2')
-      {  
-		  rt_device_write(&Device_485,0,( const char*)Send,V_wr); 
-		  //------------ below add  clear over  ----------------
-		  Dev_Voice.CMD_Type='0'; 
-		  Dev_Voice.Work_State=0;   
-		  Dev_Voice.info_sdFlag=0;     
-		  
-      }	   
-	  else
-	        rt_device_write(&Device_485,0,Send,V_wr);
-    //---- Add for debug ----
-    /*  
-        rt_kprintf("\r\n   ----> 485:");  
-	   for(i=0;i<V_wr;i++)
-	     	rt_kprintf(" %x",Send[i]);  
-	 */ 
-}
-
 
  u8  Check_MultiTakeResult_b4Trans(void)
 { 
