@@ -1122,6 +1122,9 @@ extern u8    Stuff_DataTrans_0900_ISP_ACK(u8  AckType);
 extern u8    Update_HardSoft_Version_Judge(u8 * instr);
 extern void  ISP_file_Check(void);
 extern void  ISP_Process(void);  
+//  河北天地通多媒体事件信息上传报文应答不好，所以单独处理  
+extern  void Multimedia_0800H_ACK_process(void);   
+	
 
 
 extern void delay_us(u16 j);

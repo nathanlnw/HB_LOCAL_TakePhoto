@@ -97,26 +97,9 @@ u8 Start_Camera(u8  CameraNum)
 				  
 }
 
-void  Camra_Take_Exception(void)
+void  MultiTake_Exception(void)
 {
-         if(CameraState.camera_running==1)
-         {
-	           if((CameraState.timeoutCounter++)>=3)  // 每发送一包，清除，只有单包发送超过3秒没返回才认为失败 
-			   {  
-			      //------------  Normal  Process  --------------
-			      //FeedDog;
-			      End_Camera();		
-				  
-				 // Power_485CH1_OFF;  // 第一路485的电			关电工作
-				  rt_kprintf("\r\n  Camera %d  Error\r\n",Camera_Number);     
-				  WatchDog_Feed();
-				  delay_ms(20);  // end--duration--new start	
-				  WatchDog_Feed();
-				  //Power_485CH1_ON;  // 第一路485的电			关电工作      
-                  //------------  Multi Take Process  ------------  
-                  if(1==MultiTake.Taking)
-                  {
-                      switch(Camera_Number)  
+                             switch(Camera_Number)  
                       	{
                            case  1:  
 						   	       MultiTake.Take_retry++;
@@ -201,22 +184,64 @@ void  Camra_Take_Exception(void)
                       	}
 
 
-                  }
-				 else
-				 {    //  单次拍照
-                    SingleCamera_TakeRetry++;
-					if(SingleCamera_TakeRetry>=3)
-						{
-                                                  SingleCamera_TakeRetry=0;//clear
-							 rt_kprintf("\r\n     单路拍照超过最大次数!\r\n");  
-							 SingleCamra_TakeResualt_BD=1;
-						}
-					else
-					   	{    // continue operate this  camera 
-                              Start_Camera(Camera_Number);
-							  //rt_kprintf("\r\n  重新拍 %d \r\n",Camera_Number); 
-					   	}
-				 }
+
+
+
+}
+
+
+void  Camra_Take_Exception(void)
+{
+         if(CameraState.camera_running==1)
+         {
+	           if((CameraState.timeoutCounter++)>=3)  // 每发送一包，清除，只有单包发送超过3秒没返回才认为失败 
+	           {  
+	               if(CameraState.timeoutCounter==4)
+	               {
+	                      rt_kprintf("\r\n  Camera %d  Error\r\n",Camera_Number);     
+                            Power_485CH1_OFF;  // 第一路485的电			关电工作
+	               }
+
+		       if(CameraState.timeoutCounter==5)
+	               {
+				  Power_485CH1_ON;  // 第一路485的电		   开	电工作      
+	               }
+
+			 if(CameraState.timeoutCounter==7)
+	               {
+						      //------------  Normal  Process  --------------
+						      //FeedDog;
+						         End_Camera();		
+							  
+							//  Power_485CH1_OFF;  // 第一路485的电			关电工作
+							  rt_kprintf("\r\n  Camera %d   Try again r\n",Camera_Number);     
+							  WatchDog_Feed();
+							  delay_ms(500);  // end--duration--new start	 
+							  WatchDog_Feed();
+							  Power_485CH1_ON;  // 第一路485的电		   开	电工作      
+							  delay_ms(1000);  // end--duration--new start	     
+							  WatchDog_Feed();   
+			                            //------------  Multi Take Process  ------------  
+					                  if(1==MultiTake.Taking)
+					                  {
+					                          MultiTake_Exception();
+					                  }
+							  else
+							 {    //  单次拍照
+			                                   SingleCamera_TakeRetry++;
+								if(SingleCamera_TakeRetry>=3)
+									{
+			                                                  SingleCamera_TakeRetry=0;//clear
+										 rt_kprintf("\r\n     单路拍照超过最大次数!\r\n");  
+										 SingleCamra_TakeResualt_BD=1;
+									}
+								else
+								   	{    // continue operate this  camera 
+			                              Start_Camera(Camera_Number);
+										  //rt_kprintf("\r\n  重新拍 %d \r\n",Camera_Number); 
+								   	}
+							 } 
+			 	}	  
 				  
 	           }
          }
@@ -358,9 +383,13 @@ void takephoto(u8* str)
   else 
   {  
      Camera_Number=(str[0]-0x30);
-     rt_kprintf("\r\n CameraNum=  %d\r\n",Camera_Number);	   
-     Start_Camera(Camera_Number);    
-	 return ;  
+     rt_kprintf("\r\n CameraNum=  %d\r\n",Camera_Number);	 
+	 
+    if((Camera_Take_Enable())&&(Photo_sdState.photo_sending==0)) //图片传输中不能拍	 
+           Start_Camera(Camera_Number);    
+    else
+	     rt_kprintf("\r\n 拍照和传输过程中，不执行拍照操作 !\r\n");	  	
+	return ;  
   }
 } 
 

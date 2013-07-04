@@ -425,7 +425,7 @@ void delay_ms(u16 j )
 					  }
 			 	}
             //------------------------ MultiMedia Send--------------------------
-            if(MediaObj.Media_transmittingFlag==2)
+            if((MediaObj.Media_transmittingFlag==2)&&(DEV_Login.Operate_enable==2))
             {
 			    if(1==MediaObj.SD_Data_Flag) 
 			 	{
@@ -510,10 +510,10 @@ void delay_ms(u16 j )
                    SD_ACKflag.f_MsgBroadCast_0303H=0;
                    return true;
 			 	}
-			 if(1==MediaObj.SD_media_Flag)
+			 if((1==MediaObj.SD_media_Flag)&&(DEV_Login.Operate_enable==2))
 			 	{
 				   Stuff_MultiMedia_InfoSD_0800H();
-				   MediaObj.SD_media_Flag=0;
+				   MediaObj.SD_media_Flag=2;  // original clear  0 ,,HBTDT =2  ,timeout ACK 
                    return true;    
 			 	}	
              if(DataTrans.Data_TxLen)
@@ -4861,7 +4861,7 @@ void Photo_send_start(u16 Numpic)
  // FIL FileCurrent; 
 
         rt_kprintf("   \r\n  Photo_send_start =%d \r\n",Numpic); 
-        Photo_sdState.photo_sending=disable;  
+        Photo_sdState.photo_sending=other;   //disable 
 	 Photo_sdState.SD_flag=0;  
 	 Photo_sdState.SD_packetNum=1; // 从1 开始
         Photo_sdState.Exeption_timer=0;
@@ -5186,6 +5186,49 @@ void Spd_ExpInit(void)
    speed_Exd.speed_flag=0;
 }
 
+
+//  河北天地通多媒体事件信息上传报文应答不好，所以单独处理  
+ void Multimedia_0800H_ACK_process(void)
+ {
+      						 Media_Clear_State();  //  clear 
+											 
+                                            if(0==MediaObj.Media_Type)
+											{
+											   MediaObj.Media_transmittingFlag=1; 
+											   PositionSD_Enable(); 
+											   Current_UDP_sd=1;
+											   
+											   Photo_sdState.photo_sending=enable; 
+											   Photo_sdState.SD_packetNum=1; // 第一包开始 
+											   PositionSD_Enable();  //   使能上报
+											   rt_kprintf("\r\n 开始上传照片! ....\r\n");   												
+                            	            }
+											else
+											if(1==MediaObj.Media_Type)
+											{
+											   MediaObj.Media_transmittingFlag=1;  
+											   
+											   Sound_sdState.photo_sending=enable; 
+											   Sound_sdState.SD_packetNum=1; // 第一包开始 
+											   PositionSD_Enable();  //   使能上报 
+											   Current_UDP_sd=1;
+											   rt_kprintf("\r\n 开始上传音频! ....\r\n");    												
+                            	            }	
+											else
+											if(2==MediaObj.Media_Type)
+											{
+											   MediaObj.Media_transmittingFlag=1;   
+											   PositionSD_Enable();  //   使能上报
+											   Current_UDP_sd=1;
+											   Video_sdState.photo_sending=enable; 
+											   Video_sdState.SD_packetNum=1; // 第一包开始   
+											   rt_kprintf("\r\n 开始上传视频! ....\r\n");    												
+                            	            }	
+
+
+
+
+ }
 //-----------------------------------------------------------
 void TCP_RX_Process( u8  LinkNum)  //  ---- 808  标准协议 
 {
@@ -5258,30 +5301,7 @@ void TCP_RX_Process( u8  LinkNum)  //  ---- 808  标准协议
                                      Ack_CMDid_8001=(UDP_HEX_Rx[15]<<8)+UDP_HEX_Rx[16];
 
 
-                                    //--------------  多媒体上传相关   天地通有时不给多媒体信息上传应答  --------------                                       
-							   if(MediaObj.Media_transmittingFlag==1)  // clear									      
-									     {
-									         MediaObj.Media_transmittingFlag=2;   
-											 if(Duomeiti_sdFlag==1)
-											  { 
-											      Duomeiti_sdFlag=0; 
-											      Media_Clear_State();
-												Photo_send_end();
-												Sound_send_end();
-												Video_send_end();
-                                                                                     rt_kprintf("\r\n  手动上报多媒体上传处理\r\n");
-											  }	
-											 rt_kprintf("\r\n  多媒体信息前的多媒体发送完毕 \r\n");  
-									   	  }	
-									 WatchDog_Feed();                
-                                   //-----------------------------------------------------------
-
-
-
-
-
-
-					 
+       			 
 
 					   switch(Ack_CMDid_8001)   // 判断对应终端消息的ID做区分处理
 					   	{ 
@@ -5384,41 +5404,8 @@ void TCP_RX_Process( u8  LinkNum)  //  ---- 808  标准协议
 						                }
 									   break;
                             case 0x0800:  // 多媒体事件信息上传
-                                             rt_kprintf("\r\n 多媒体事件信息上传回应! \r\n");											 
-											 Media_Clear_State();  //  clear 
-											 
-                                            if(0==MediaObj.Media_Type)
-											{
-											   MediaObj.Media_transmittingFlag=1; 
-											   PositionSD_Enable(); 
-											   Current_UDP_sd=1;
-											   
-											   Photo_sdState.photo_sending=enable; 
-											   Photo_sdState.SD_packetNum=1; // 第一包开始 
-											   PositionSD_Enable();  //   使能上报
-											   rt_kprintf("\r\n 开始上传照片! ....\r\n");   												
-                            	            }
-											else
-											if(1==MediaObj.Media_Type)
-											{
-											   MediaObj.Media_transmittingFlag=1;  
-											   
-											   Sound_sdState.photo_sending=enable; 
-											   Sound_sdState.SD_packetNum=1; // 第一包开始 
-											   PositionSD_Enable();  //   使能上报 
-											   Current_UDP_sd=1;
-											   rt_kprintf("\r\n 开始上传音频! ....\r\n");    												
-                            	            }	
-											else
-											if(2==MediaObj.Media_Type)
-											{
-											   MediaObj.Media_transmittingFlag=1;   
-											   PositionSD_Enable();  //   使能上报
-											   Current_UDP_sd=1;
-											   Video_sdState.photo_sending=enable; 
-											   Video_sdState.SD_packetNum=1; // 第一包开始   
-											   rt_kprintf("\r\n 开始上传视频! ....\r\n");    												
-                            	            }	
+                                             rt_kprintf("\r\n 多媒体事件信息上传回应! \r\n");	
+						   //	Multimedia_0800H_ACK_process();     // mask special  for  HB TDT
 											break;
 						    case 0x0702: 
                                           rt_kprintf("\r\n  驾驶员信息上报---中心应答!  \r\n"); 							       
@@ -6288,12 +6275,12 @@ void TCP_RX_Process( u8  LinkNum)  //  ---- 808  标准协议
 				   
 					if((Camera_Take_Enable())&&(Photo_sdState.photo_sending==0)) //图片传输中不能拍
 					{
-					   Camera_Number=UDP_HEX_Rx[13];
-					   if((Camera_Number>Max_CameraNum)&&(Camera_Number<1)) 
-						  break;
+					       Camera_Number=UDP_HEX_Rx[13];
+					       if((Camera_Number>Max_CameraNum)&&(Camera_Number<1)) 
+						      break;
 					 
-					   Start_Camera(Camera_Number);   //开始拍照  
-					   SingleCamera_TakeRetry=0;   // clear 
+							   Start_Camera(Camera_Number);   //开始拍照  
+							   SingleCamera_TakeRetry=0;   // clear 
 					}	   
 					rt_kprintf("\r\n   中心及时拍照  Camera: %d    \r\n",Camera_Number);	
 		              

@@ -430,7 +430,32 @@ static void timeout_app(void *  parameter)
                   }	   	
          //-----------保存数据-----------------
          JT808_Related_Save_Process();
-		    //---------------------------------		  
+
+		    //--------  多媒体时间信息上传 后处理(不判应答)-----
+                  //--------------  多媒体上传相关   天地通有时不给多媒体信息上传应答  --------------                                       
+
+	       if(MediaObj.Media_transmittingFlag==1)  // clear		 							      
+				     {
+				         MediaObj.Media_transmittingFlag=2;   
+						 if(Duomeiti_sdFlag==1)
+						  { 
+						      Duomeiti_sdFlag=0; 
+						      Media_Clear_State();
+							Photo_send_end();
+							Sound_send_end();
+							Video_send_end();
+                                                                 rt_kprintf("\r\n  手动上报多媒体上传处理\r\n");
+						  }	
+						 rt_kprintf("\r\n  多媒体信息前的多媒体发送完毕 \r\n");  
+				   	  }	
+				 WatchDog_Feed();       
+
+		   if( MediaObj.SD_media_Flag==2)
+		  {
+		        Multimedia_0800H_ACK_process();      // timeout  replace  RxACK
+			  MediaObj.SD_media_Flag=0; 
+                }		 
+               //-----------------------------------------------------------
      	 }	
          //   Media 
            if(OneSec_CounterApp>>1)   //  除以2 为1	   

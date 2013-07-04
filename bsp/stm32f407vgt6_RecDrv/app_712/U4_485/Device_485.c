@@ -954,11 +954,11 @@ static void timeout_485(void *  parameter)
             One_second_Counter_485=0;               
 	      OpenDoor_TakePhoto();	 
 
-		 if((Second_cout++)>2) 
-		 {
+		// if((Second_cout++)>2) 
+		// {
 		      Camra_Take_Exception();    
-		      Second_cout=0;	  
-		 }
+		//      Second_cout=0;	  
+		// }
 
        }	   
 
